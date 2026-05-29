@@ -15,7 +15,6 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
-import emailjs from "@emailjs/browser";
 import { Alert } from "@/components/portfolio/alert";
 import { Particles } from "@/components/portfolio/particles";
 import {
@@ -206,27 +205,31 @@ export const Contact: FC = () => {
     setIsLoading(true);
 
     try {
-      await emailjs.send(
-        "service_79b0nyj",
-        "template_17us8im",
-        {
-          from_name: formData.name,
-          to_name: "Hasnain",
-          from_email: formData.email,
-          to_email: CONTACT_EMAIL,
-          message: `Budget: ${formData.budget || "Not specified"}\n\n${
-            formData.message
-          }`,
-        },
-        "pn-Bw_mS1_QQdofuV"
-      );
-      setIsLoading(false);
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+      };
+
+      if (!res.ok) {
+        throw new Error(data.error || "Submission failed.");
+      }
+
       setFormData(initialFormState);
       showAlertMessage("success", "Message sent — I'll reply within 24 hours.");
     } catch (error) {
-      setIsLoading(false);
       console.error(error);
-      showAlertMessage("danger", "Something went wrong, please try again.");
+      showAlertMessage(
+        "danger",
+        error instanceof Error
+          ? error.message
+          : "Something went wrong, please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 

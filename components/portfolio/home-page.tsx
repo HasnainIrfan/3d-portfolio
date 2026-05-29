@@ -10,6 +10,7 @@ import { Experiences } from "@/components/sections/experiences";
 import { Testimonial } from "@/components/sections/testimonial";
 import { Contact } from "@/components/sections/contact";
 import { Footer } from "@/components/sections/footer";
+import { PageLoader } from "@/components/portfolio/page-loader";
 
 const Hero = dynamic(
   () => import("@/components/sections/hero").then((mod) => mod.Hero),
@@ -17,15 +18,18 @@ const Hero = dynamic(
 );
 
 export const HomePage: FC = () => (
-  <div className="container mx-auto max-w-7xl">
-    <Navbar />
-    <Hero />
-    <About />
-    <Services />
-    <Projects />
-    <Experiences />
-    <Testimonial />
-    <Contact />
-    <Footer />
-  </div>
+  <>
+    <PageLoader />
+    <div className="container mx-auto max-w-7xl">
+      <Navbar />
+      <Hero />
+      <About />
+      <Services />
+      <Projects />
+      <Experiences />
+      <Testimonial />
+      <Contact />
+      <Footer />
+    </div>
+  </>
 );
