@@ -20,7 +20,7 @@ const Hero = dynamic(
 export const HomePage: FC = () => (
   <>
     <PageLoader />
-    <div className="container mx-auto max-w-7xl">
+    <div className="w-full">
       <Navbar />
       <Hero />
       <About />

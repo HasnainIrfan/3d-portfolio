@@ -34,9 +34,9 @@ export interface Experience {
 
 export interface Review {
   name: string;
-  username: string;
+  role: string;
   body: string;
-  img: string;
+  accent: string;
 }
 
 export interface Service {

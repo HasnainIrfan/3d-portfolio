@@ -10,26 +10,46 @@ import { type Review } from "@/types/portfolio-types";
 const firstRow = REVIEWS.slice(0, REVIEWS.length / 2);
 const secondRow = REVIEWS.slice(REVIEWS.length / 2);
 
-const ReviewCard: FC<Review> = ({ img, name, username, body }) => (
+const initials = (name: string) =>
+  name
+    .split(" ")
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+
+const ReviewCard: FC<Review> = ({ name, role, body, accent }) => (
   <figure
     className={twMerge(
-      "relative h-full w-72 cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-storm/60 to-indigo/40 backdrop-blur-md p-5 transition-all hover:border-white/30 hover:-translate-y-1"
+      "relative h-full w-80 cursor-default overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-storm/60 to-indigo/40 backdrop-blur-md p-6 transition-all hover:border-white/30 hover:-translate-y-1"
     )}
   >
     <div className="flex flex-row items-center gap-3">
-      <img
-        className="rounded-full bg-white/10"
-        width={40}
-        height={40}
-        alt={name}
-        src={img}
-      />
+      <div
+        className={twMerge(
+          "flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-sm font-bold text-white shadow-lg",
+          accent
+        )}
+        aria-hidden
+      >
+        {initials(name)}
+      </div>
       <div className="flex flex-col">
         <figcaption className="text-sm font-semibold text-white">
           {name}
         </figcaption>
-        <p className="text-xs font-medium text-white/40">{username}</p>
+        <p className="text-xs font-medium text-white/50">{role}</p>
       </div>
+    </div>
+    <div
+      className="mt-4 flex gap-0.5 text-coral"
+      aria-label="5 out of 5 stars"
+    >
+      {Array.from({ length: 5 }).map((_, i) => (
+        <span key={i} aria-hidden>
+          ★
+        </span>
+      ))}
     </div>
     <blockquote className="mt-3 text-sm text-neutral-300 leading-relaxed">
       &ldquo;{body}&rdquo;
@@ -77,7 +97,7 @@ export const Testimonial: FC = () => {
       >
         <Marquee pauseOnHover className="[--duration:32s] [--gap:1rem]">
           {firstRow.map((review) => (
-            <ReviewCard key={review.username} {...review} />
+            <ReviewCard key={review.name} {...review} />
           ))}
         </Marquee>
         <Marquee
@@ -86,7 +106,7 @@ export const Testimonial: FC = () => {
           className="[--duration:38s] [--gap:1rem]"
         >
           {secondRow.map((review) => (
-            <ReviewCard key={review.username} {...review} />
+            <ReviewCard key={review.name} {...review} />
           ))}
         </Marquee>
         <div className="absolute inset-y-0 left-0 w-1/5 pointer-events-none bg-gradient-to-r from-primary to-transparent" />

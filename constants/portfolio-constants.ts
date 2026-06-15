@@ -8,13 +8,13 @@ import {
 } from "@/types/portfolio-types";
 
 export const HERO_NAME = "Hasnain Irfan";
-export const HERO_ROLE = "Software Engineer";
+export const HERO_ROLE = "Senior Software Engineer";
 export const HERO_LOCATION = "Karachi, Pakistan";
 export const HERO_TAGLINE =
   "I architect scalable web & mobile products with React, Next.js and Node.js — turning complex ideas into shipped, revenue-ready software.";
 
 export const STATS: Stat[] = [
-  { value: "3+", label: "Years building products" },
+  { value: "5+", label: "Years building products" },
   { value: "20+", label: "Shipped projects" },
   { value: "1k+", label: "End users served" },
   { value: "40%", label: "Avg. productivity lift" },
@@ -261,13 +261,13 @@ export const MY_SOCIALS: SocialLink[] = [
   {
     name: "GitHub",
     href: "https://github.com/hasnainirfan",
-    icon: "/assets/logos/github.svg",
+    icon: "/assets/socials/github.svg",
   },
 ];
 
 export const EXPERIENCES: Experience[] = [
   {
-    title: "Software Engineer",
+    title: "Senior Software Engineer",
     job: "Getweys · Karachi",
     date: "2023 — Present",
     contents: [
@@ -302,52 +302,52 @@ export const EXPERIENCES: Experience[] = [
 
 export const REVIEWS: Review[] = [
   {
-    name: "Sarah",
-    username: "@sarah · Founder",
-    body: "Hasnain shipped our admin portal in record time — clean code, great judgement and zero hand-holding.",
-    img: "https://robohash.org/sarah",
+    name: "Marcus Reyes",
+    role: "Founder · Fit From Anywhere",
+    body: "Hasnain took our fitness platform from prototype to 1,000+ active users — admin portal, mobile app and backend, all shipped on time. He treated the product like his own.",
+    accent: "from-coral to-fuchsia",
   },
   {
-    name: "Daniel",
-    username: "@daniel · CTO",
-    body: "He doesn't just take tickets — he improves the architecture as he goes. Best Next.js engineer we've worked with.",
-    img: "https://robohash.org/daniel",
+    name: "Daniel Cole",
+    role: "CTO · Arootah",
+    body: "He doesn't just close tickets — he improves the architecture as he goes. Our investment dashboards are faster and far easier to maintain since he joined.",
+    accent: "from-royal to-lavender",
   },
   {
-    name: "Aisha",
-    username: "@aisha · PM",
-    body: "Reliable, communicative, and the UI quality is consistently a level above what we asked for.",
-    img: "https://robohash.org/aisha",
+    name: "Yannick Mercier",
+    role: "Founder · PipPipYalah",
+    body: "Real-time matching, dynamic pricing, payments with retries — he engineered the hard parts cleanly and the booking flow just works. Rock-solid delivery.",
+    accent: "from-aqua to-royal",
   },
   {
-    name: "Marcus",
-    username: "@marcus · Founder",
-    body: "Took our fitness app from prototype to 1,000+ users. Treated our product like his own.",
-    img: "https://robohash.org/marcus",
+    name: "Sara Whitman",
+    role: "Product Lead · Getweys",
+    body: "One of the most reliable engineers I've worked with. Sharp judgement, great communication, and the UI quality is consistently a level above what we asked for.",
+    accent: "from-mint to-aqua",
   },
   {
-    name: "Elena",
-    username: "@elena · Designer",
-    body: "Pixel-perfect implementation and proactive on edge cases. A dream to design alongside.",
-    img: "https://robohash.org/elena",
+    name: "Omar Siddiqui",
+    role: "Engineering Manager",
+    body: "Strong engineering instincts and a natural mentor. He lifted the whole team's standards on code review and shipped features that actually moved our metrics.",
+    accent: "from-lavender to-coral",
   },
   {
-    name: "Omar",
-    username: "@omar · Tech Lead",
-    body: "Strong engineering instincts, great mentoring, and ships features that actually move the metric.",
-    img: "https://robohash.org/omar",
+    name: "Priya Nair",
+    role: "Tech Lead",
+    body: "We migrated a legacy stack to Next.js + Node with Hasnain leading the effort — fewer bugs, faster pages, and a much happier engineering team.",
+    accent: "from-fuchsia to-royal",
   },
   {
-    name: "Priya",
-    username: "@priya · Founder",
-    body: "Migrated our legacy stack to Next.js + Node — fewer bugs, faster pages, happier users.",
-    img: "https://robohash.org/priya",
+    name: "Aisha Raza",
+    role: "Product Manager",
+    body: "Communicative, dependable and thoughtful about edge cases before they become problems. Planning a release around him is genuinely low-stress.",
+    accent: "from-sand to-coral",
   },
   {
-    name: "Liam",
-    username: "@liam · PM",
-    body: "Calm under pressure and very thoughtful about scale. Would hire again in a heartbeat.",
-    img: "https://robohash.org/liam",
+    name: "Liam Foster",
+    role: "Founder",
+    body: "Calm under pressure and very deliberate about scale. He shipped our launch ahead of schedule and I'd hire him again in a heartbeat.",
+    accent: "from-aqua to-mint",
   },
 ];
 

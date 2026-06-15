@@ -112,8 +112,8 @@ export const About: FC = () => {
             {HERO_NAME} · {HERO_LOCATION}
           </h3>
           <p className="text-neutral-300 leading-relaxed text-base md:text-lg">
-            I&apos;m a Software Engineer with{" "}
-            <span className="text-white font-semibold">3+ years</span> of
+            I&apos;m a Senior Software Engineer with{" "}
+            <span className="text-white font-semibold">5+ years</span> of
             experience designing and shipping production-grade web and mobile
             products. I lead with clean code, sharp problem-solving and a deep
             care for the user experience.
@@ -122,7 +122,7 @@ export const About: FC = () => {
             From{" "}
             <span className="text-white">Front-End Developer</span> to{" "}
             <span className="text-white">Junior Team Lead</span>, and now{" "}
-            <span className="text-white">Software Engineer at Getweys</span>,
+            <span className="text-white">Senior Software Engineer at Getweys</span>,
             I&apos;ve led teams, mentored developers, and contributed to
             architecture decisions that kept codebases scalable and
             maintainable.

@@ -137,7 +137,7 @@ export const Navbar: FC = () => {
           : "bg-transparent"
       }`}
     >
-      <div className="mx-auto c-space max-w-7xl">
+      <div className="c-space">
         <div className="flex items-center justify-between py-3">
           <a
             href="#home"

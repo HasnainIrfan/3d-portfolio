@@ -6,6 +6,7 @@ import {
   useState,
   type FC,
   type FormEvent,
+  type ReactNode,
 } from "react";
 import {
   AnimatePresence,
@@ -20,6 +21,7 @@ import { Particles } from "@/components/portfolio/particles";
 import {
   CONTACT_EMAIL,
   HERO_LOCATION,
+  MY_SOCIALS,
 } from "@/constants/portfolio-constants";
 
 interface ContactFormData {
