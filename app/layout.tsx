@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Funnel_Display } from "next/font/google";
 import "./globals.css";
 
@@ -30,6 +30,15 @@ export const metadata: Metadata = {
       "Scalable web & mobile products built with React, Next.js and Node.js.",
     type: "website",
   },
+};
+
+export const viewport: Viewport = {
+  // Tints mobile browser chrome to match the site's brand gradient.
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#030412" },
+    { media: "(prefers-color-scheme: light)", color: "#5c33cc" },
+  ],
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
