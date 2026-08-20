@@ -118,3 +118,7 @@ export interface AstronautProps {
   scale?: number;
   position?: [number, number, number];
 }
+
+export interface ThemedGlobeProps {
+  className?: string;
+}

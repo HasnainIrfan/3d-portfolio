@@ -20,6 +20,24 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Admin panel
+
+Contact-form submissions are readable at `/admin`, behind a single admin
+credential held in the environment. Requires a one-time migration — see
+[`docs/admin.md`](docs/admin.md).
+
+Environment variables (all server-side except where noted):
+
+| Variable | Used for |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-side DB access. Never expose to the browser. |
+| `ADMIN_SESSION_SECRET` | Signs the `/admin` session cookie. Min 32 chars. |
+| `ADMIN_EMAIL` | The one `/admin` login address. |
+| `ADMIN_PASSWORD` | The one `/admin` login password. |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | Contact-form notification email |
+| `CONTACT_RECIPIENT_EMAIL` | Where enquiries are sent (optional; falls back to a hardcoded address) |
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

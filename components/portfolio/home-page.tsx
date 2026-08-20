@@ -17,10 +17,20 @@ const Hero = dynamic(
   { ssr: false }
 );
 
+const ThemedGlobe = dynamic(
+  () =>
+    import("@/components/portfolio/themed-globe").then((mod) => mod.ThemedGlobe),
+  { ssr: false }
+);
+
 export const HomePage: FC = () => (
   <>
     <PageLoader />
-    <div className="w-full">
+    <ThemedGlobe />
+    {/* The globe renders at z-0, behind everything here. Lifting the content
+        into its own stacking context is what keeps it there — otherwise the
+        sections, which are `relative` with no z-index, interleave with it. */}
+    <div className="relative z-10 w-full">
       <Navbar />
       <Hero />
       <About />

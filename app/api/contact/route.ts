@@ -117,6 +117,14 @@ export async function POST(req: Request) {
     );
   }
 
+  // Tracked so the failure can be shown in /admin. The send below is
+  // deliberately non-fatal — the message is already saved, and a visitor should
+  // not see an error because our mail provider is having a bad day — but
+  // "non-fatal" used to mean "invisible", which is how weeks of undelivered
+  // notifications go unnoticed.
+  let emailSent = false;
+  let emailError: string | null = null;
+
   if (smtpHost && smtpUser && smtpPass) {
     try {
       const transporter = nodemailer.createTransport({
@@ -161,12 +169,41 @@ Submission ID: ${inserted?.id}
         text,
         html,
       });
+      emailSent = true;
     } catch (mailError) {
-      console.error("Email send failed:", mailError);
-      // The DB row is already saved — still return success to the user.
+      // Nodemailer puts the useful part in `response` — the raw SMTP reply,
+      // e.g. "550-5.4.5 Daily user sending limit exceeded". Preferred over
+      // `message`, which is often just "Data command failed".
+      const detail =
+        (mailError as { response?: string })?.response ??
+        (mailError as Error)?.message ??
+        String(mailError);
+      emailError = detail.slice(0, 500);
+      console.error("Email send failed:", detail);
+      // The DB row is already saved — still return success to the visitor.
     }
   } else {
+    emailError = "SMTP is not configured on this deployment.";
     console.warn("SMTP not configured — skipping email send.");
+  }
+
+  // Best effort, and separate from the insert above on purpose: if these
+  // columns have not been added yet (see the migration), the notification
+  // status is simply not recorded — the submission itself is already safe.
+  if (inserted?.id) {
+    const { error: statusError } = await supabase
+      .from("contact_submissions")
+      .update({ email_sent: emailSent, email_error: emailError })
+      .eq("id", inserted.id);
+
+    if (statusError) {
+      console.error(
+        "Could not record email status (run supabase/migrations/" +
+          "0001_contact_submissions.sql to add the email_sent / email_error " +
+          "columns):",
+        statusError.message
+      );
+    }
   }
 
   return NextResponse.json({ ok: true, id: inserted?.id }, { status: 201 });
