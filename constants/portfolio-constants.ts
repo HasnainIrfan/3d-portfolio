@@ -22,7 +22,7 @@ export const STATS: Stat[] = [
 
 export const MY_PROJECTS: Project[] = [
   {
-    id: 0,
+    id: 1,
     title: "Inverex Global",
     category: "Solar Energy · Pakistan",
     description:
@@ -45,7 +45,7 @@ export const MY_PROJECTS: Project[] = [
     ],
   },
   {
-    id: 1,
+    id: 2,
     title: "Getweys",
     category: "Digital Product Agency",
     description:
@@ -68,75 +68,7 @@ export const MY_PROJECTS: Project[] = [
     ],
   },
   {
-    id: 2,
-    title: "Fit From Anywhere",
-    category: "Fitness SaaS · USA",
-    description:
-      "Community fitness platform for Stanford Faculty & Staff Housing — 1:1 coaching, goal-based programs, a video library and trainer messaging.",
-    subDescription: [
-      "Designed and built the Admin Portal on Next.js with 20+ reusable components (radio, checkbox, date/time pickers).",
-      "Implemented user authentication, daily workout plans, and progress tracking across the platform.",
-      "Built automated cron jobs sending push notifications for trainer appointments and reminders.",
-      "Optimised SQL queries and scalable schemas; collaborated in an agile team of 8 to ship on time.",
-    ],
-    href: "https://ffa-landing.vercel.app/",
-    logo: "",
-    image: "/assets/projects/accessories.jpg",
-    accent: "from-aqua/40 to-mint/10",
-    tags: [
-      { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
-      { id: 2, name: "React Native", path: "/assets/logos/react.svg" },
-      { id: 3, name: "Node.js", path: "/assets/logos/javascript.svg" },
-      { id: 4, name: "TailwindCSS", path: "/assets/logos/tailwindcss.svg" },
-    ],
-  },
-  {
     id: 3,
-    title: "PipPipYalah",
-    category: "Carpooling & Mobility · Morocco",
-    description:
-      "Carpooling and private-transfer platform matching riders with verified drivers across cities and airports.",
-    subDescription: [
-      "Built ride search and matching flows with real-time pricing.",
-      "Implemented booking, payments and driver verification journeys.",
-      "Shipped a bilingual, mobile-first UI for a high-traffic consumer audience.",
-    ],
-    href: "https://pippipyalah.com/",
-    logo: "",
-    image: "/assets/projects/blazor-app.jpg",
-    accent: "from-mint/40 to-aqua/10",
-    tags: [
-      { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
-      { id: 2, name: "Node.js", path: "/assets/logos/javascript.svg" },
-      { id: 3, name: "MongoDB", path: "/assets/logos/git.svg" },
-      { id: 4, name: "Rest APIs", path: "/assets/logos/javascript.svg" },
-    ],
-  },
-  {
-    id: 4,
-    title: "Brickk",
-    category: "Fintech · Credit Building · UK",
-    description:
-      "UK rent-reporting platform that turns monthly rent into credit history with Experian, Equifax and TransUnion — plus a rewards marketplace.",
-    subDescription: [
-      "Built the renter dashboard surfacing credit status, reporting activity and rewards.",
-      "Integrated open-banking connectivity for automatic rent-payment detection.",
-      "Implemented a marketplace of 1,000+ brand offers with a points-to-rent redemption flow.",
-      "Handled subscription billing and per-user control over what gets reported.",
-    ],
-    href: "https://brickk.co.uk/",
-    logo: "",
-    image: "/assets/projects/auth-system.jpg",
-    accent: "from-royal/40 to-aqua/10",
-    tags: [
-      { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
-      { id: 2, name: "TypeScript", path: "/assets/logos/javascript.svg" },
-      { id: 3, name: "Stripe", path: "/assets/logos/javascript.svg" },
-      { id: 4, name: "Open Banking", path: "/assets/logos/javascript.svg" },
-    ],
-  },
-  {
-    id: 5,
     title: "PromptStore",
     category: "AI Marketplace",
     description:
@@ -159,7 +91,7 @@ export const MY_PROJECTS: Project[] = [
     ],
   },
   {
-    id: 6,
+    id: 4,
     title: "ClipSave",
     category: "Media Tools",
     description:
@@ -182,73 +114,7 @@ export const MY_PROJECTS: Project[] = [
     ],
   },
   {
-    id: 7,
-    title: "Axis",
-    category: "AI Design Workspace",
-    description:
-      "AI design workspace built around a node graph for iterating on UI generations and branching between versions.",
-    subDescription: [
-      "Built an interactive node-graph canvas for chaining and comparing generations.",
-      "Implemented branching history so any iteration can be forked and revisited.",
-      "Optimised canvas render performance for large graphs without jank.",
-    ],
-    href: "https://onaxis.design/",
-    logo: "",
-    image: "/assets/projects/game-engine.jpg",
-    accent: "from-aqua/40 to-mint/10",
-    tags: [
-      { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
-      { id: 2, name: "TypeScript", path: "/assets/logos/javascript.svg" },
-      { id: 3, name: "TailwindCSS", path: "/assets/logos/tailwindcss.svg" },
-      { id: 4, name: "Rest APIs", path: "/assets/logos/javascript.svg" },
-    ],
-  },
-  {
-    id: 8,
-    title: "TG Finder",
-    category: "Web3 Discovery Tool",
-    description:
-      "Discovery & analytics tool for Telegram communities — surfaces channels, signals and trends in a slick UI.",
-    subDescription: [
-      "Built fast search and filtering across Telegram-source data.",
-      "Designed dense, scannable dashboards with smooth motion.",
-      "Engineered a responsive layout that holds up on mobile and desktop.",
-    ],
-    href: "https://www.tgfinder.xyz/",
-    logo: "",
-    image: "/assets/projects/elearning.jpg",
-    accent: "from-lavender/40 to-fuchsia/10",
-    tags: [
-      { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
-      { id: 2, name: "TypeScript", path: "/assets/logos/javascript.svg" },
-      { id: 3, name: "TailwindCSS", path: "/assets/logos/tailwindcss.svg" },
-      { id: 4, name: "Web3", path: "/assets/logos/javascript.svg" },
-    ],
-  },
-  {
-    id: 9,
-    title: "VacayCraze",
-    category: "Travel & Vacation Planning",
-    description:
-      "Travel & vacation planning app that lets users design itineraries and book end-to-end.",
-    subDescription: [
-      "Built itinerary builder with reusable trip-card components.",
-      "Implemented booking flow with stripe-style step UI and validation.",
-      "Optimised images, hero loads and route transitions for travel-grade polish.",
-    ],
-    href: "https://vacaycraze.com/",
-    logo: "",
-    image: "/assets/projects/accessories.jpg",
-    accent: "from-coral/40 to-sand/10",
-    tags: [
-      { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
-      { id: 2, name: "TypeScript", path: "/assets/logos/javascript.svg" },
-      { id: 3, name: "TailwindCSS", path: "/assets/logos/tailwindcss.svg" },
-      { id: 4, name: "Rest APIs", path: "/assets/logos/javascript.svg" },
-    ],
-  },
-  {
-    id: 10,
+    id: 5,
     title: "Fast Digital Technology",
     category: "Cyber Security Services",
     description:
@@ -270,7 +136,7 @@ export const MY_PROJECTS: Project[] = [
     ],
   },
   {
-    id: 11,
+    id: 6,
     title: "ATF Catalogue",
     category: "Interactive Flipbook · UAE",
     description:
@@ -395,22 +261,10 @@ export const EXPERIENCES: Experience[] = [
 
 export const REVIEWS: Review[] = [
   {
-    name: "Marcus Reyes",
-    role: "Founder · Fit From Anywhere",
-    body: "Hasnain took our fitness platform from prototype to 1,000+ active users — admin portal, mobile app and backend, all shipped on time. He treated the product like his own.",
-    accent: "from-coral to-fuchsia",
-  },
-  {
     name: "Daniel Cole",
     role: "CTO · Arootah",
     body: "He doesn't just close tickets — he improves the architecture as he goes. Our investment dashboards are faster and far easier to maintain since he joined.",
     accent: "from-royal to-lavender",
-  },
-  {
-    name: "Yannick Mercier",
-    role: "Founder · PipPipYalah",
-    body: "Real-time matching, dynamic pricing, payments with retries — he engineered the hard parts cleanly and the booking flow just works. Rock-solid delivery.",
-    accent: "from-aqua to-royal",
   },
   {
     name: "Sara Whitman",
