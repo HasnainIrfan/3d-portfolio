@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type FC,
   type MouseEvent,
 } from "react";
@@ -351,13 +352,33 @@ const VerticalProjects: FC<{ onOpen: (p: Project) => void }> = ({ onOpen }) => (
   </div>
 );
 
+/**
+ * "Have we hydrated yet?" without a state update in an effect.
+ *
+ * `useMediaQuery` cannot know the viewport during SSR, so the first client
+ * render has to match the server's guess or React reports a hydration
+ * mismatch. The usual fix is a `mounted` flag set from `useEffect`, which
+ * schedules an extra render pass — and which React now flags as a cascading
+ * render.
+ *
+ * `useSyncExternalStore` answers the same question by design: the server
+ * snapshot is `false`, the client snapshot is `true`, and the switch happens
+ * during hydration rather than in a follow-up commit. Nothing ever changes, so
+ * the store never needs to notify and `subscribe` is a no-op.
+ */
+const noopSubscribe = () => () => {};
+const useHasMounted = (): boolean =>
+  useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false
+  );
+
 export const Projects: FC = () => {
   const isMobile = useMediaQuery({ maxWidth: 1023 });
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHasMounted();
   const [active, setActive] = useState<Project | null>(null);
   const total = MY_PROJECTS.length;
-
-  useEffect(() => setMounted(true), []);
 
   const useHorizontal = mounted && !isMobile;
 

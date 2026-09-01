@@ -8,7 +8,6 @@ export const ProjectDetails: FC<ProjectDetailsProps> = ({
   title,
   description,
   subDescription,
-  image,
   tags,
   href,
   closeModal,

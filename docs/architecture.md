@@ -94,7 +94,8 @@ or remove projects, update the numbers yourself.
 
 contact_submissions INSERT
    └─ Database Webhook → supabase/functions/notify-contact  (Deno)
-        ├─ send the alert over SMTP (secrets held by Supabase)
+        ├─ acknowledgement to the visitor      (sent first, failure isolated)
+        ├─ the lead to you, Reply-To: visitor
         └─ write email_sent / email_error back onto the row
 ```
 

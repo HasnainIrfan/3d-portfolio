@@ -39,11 +39,9 @@ npm run lint
 npm run build
 ```
 
-`npm run build` must pass — there is no test suite, so the type-check is the
-gate. `npm run lint` currently reports a small number of pre-existing
-`react-hooks` errors in `components/portfolio/globe.tsx` (the unused COBE globe)
-and `components/sections/projects.tsx`; don't add new ones, and a PR that clears
-the existing ones is welcome.
+Both must pass. There is no test suite, so the build's type-check is the gate.
+`npm run lint` is currently at **zero errors**; the remaining warnings are all
+`<img>`-versus-`next/image` judgment calls on small SVG icons. Keep it at zero.
 
 ## Conventions
 

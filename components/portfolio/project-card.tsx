@@ -5,15 +5,7 @@ import { ProjectDetails } from "@/components/portfolio/project-details";
 import { type ProjectCardProps } from "@/types/portfolio-types";
 
 export const ProjectCard: FC<ProjectCardProps> = (project) => {
-  const {
-    title,
-    description,
-    subDescription,
-    href,
-    image,
-    tags,
-    setPreview,
-  } = project;
+  const { title, image, tags, setPreview } = project;
   const [isHidden, setIsHidden] = useState(false);
 
   return (

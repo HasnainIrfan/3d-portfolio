@@ -122,7 +122,8 @@ credentials live in Supabase and never touch this repository or your web host.
 INSERT on contact_submissions
   → Database Webhook
     → notify-contact Edge Function
-      → your SMTP server
+      → acknowledgement to the visitor
+      → the lead to you (Reply-To: the visitor)
       → writes email_sent / email_error back to the row
 ```
 
@@ -137,6 +138,8 @@ supabase secrets set \
   SMTP_USER=you@example.com \
   SMTP_PASS='app-password-not-your-account-password' \
   CONTACT_RECIPIENT_EMAIL=you@example.com \
+  OWNER_NAME="Your Name" \
+  SITE_URL=https://yoursite.com \
   NOTIFY_WEBHOOK_SECRET="$(openssl rand -hex 32)"
 ```
 
@@ -159,24 +162,32 @@ the URL can post a payload and make your SMTP account send mail from your
 domain. The function logs a warning and runs unprotected if the secret is unset,
 rather than silently pretending to be secure.
 
+### What gets sent
+
+Two emails per enquiry, both from `supabase/functions/notify-contact/email-template.ts`
+— the only email templates in this project:
+
+| To | What it says |
+| --- | --- |
+| **The visitor** | A short acknowledgement: their message arrived, you read them yourself, expect a reply within a business day. Includes a copy of what they wrote. |
+| **You** | The lead — name, email, budget, message, timestamp — with `Reply-To` set to the visitor, so replying answers them. |
+
+The acknowledgement is sent first, and its failure is caught separately. A typo
+in the visitor's address must not stop the lead reaching you.
+
+Set `OWNER_NAME` and `SITE_URL` alongside the SMTP secrets so the
+acknowledgement signs off with your name and can link back to your work.
+
 ### Auth emails
 
-Password resets, invites and magic links are sent by Supabase itself, through
-Authentication → **SMTP Settings**. Supabase's built-in sender is rate-limited
-and not meant for production, so add your own SMTP there too.
+Password resets and invites are sent by Supabase itself, using whatever SMTP you
+configure under Authentication → **SMTP Settings**. The built-in sender is
+rate-limited and not meant for production, so add your own there too.
 
-Dark-themed templates matching the site are in `supabase/templates/` — paste
-each into Authentication → **Emails**:
-
-| File | Template |
-| --- | --- |
-| `confirm-signup.html` | Confirm signup |
-| `invite.html` | Invite user |
-| `magic-link.html` | Magic link |
-| `reset-password.html` | Reset password |
-| `change-email.html` | Change email address |
-
-Running locally with the CLI? `supabase/config.toml` already points at all five.
+Those emails use Supabase's default styling. This project ships no templates for
+them — with one admin who rarely resets a password, custom branding on a
+password-reset email is not worth the five files it costs. Restyle them in the
+Dashboard if you ever want to.
 
 ---
 

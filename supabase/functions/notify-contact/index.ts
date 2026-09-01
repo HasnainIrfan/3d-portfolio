@@ -11,13 +11,18 @@
  *   INSERT on contact_submissions
  *     → Database Webhook (Dashboard → Database → Webhooks)
  *       → this function
- *         → SMTP
+ *         → acknowledgement to the person who wrote in
+ *         → the lead to you, Reply-To set to them
  *         → writes email_sent / email_error back to the row
+ *
+ * The acknowledgement goes first. Someone who has just written to a stranger is
+ * waiting on it; you are not.
  *
  * Deploy:
  *   supabase functions deploy notify-contact
  *   supabase secrets set SMTP_HOST=... SMTP_PORT=465 SMTP_USER=... \
  *                        SMTP_PASS=... CONTACT_RECIPIENT_EMAIL=... \
+ *                        OWNER_NAME="Your Name" SITE_URL=https://yoursite.com \
  *                        NOTIFY_WEBHOOK_SECRET=$(openssl rand -hex 32)
  *
  * Setup is walked through in docs/admin.md.
@@ -26,9 +31,12 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 import {
-  buildHtml,
-  buildSubject,
-  buildText,
+  buildAlertHtml,
+  buildAlertSubject,
+  buildAlertText,
+  buildReplyHtml,
+  buildReplySubject,
+  buildReplyText,
   type Submission,
 } from "./email-template.ts";
 
@@ -112,18 +120,46 @@ Deno.serve(async (req: Request): Promise<Response> => {
       },
     });
 
+    const ownerName = env("OWNER_NAME") ?? "the team";
+    const siteUrl = env("SITE_URL");
+
+    // 1. Acknowledgement to the sender. Wrapped on its own so a bad address —
+    //    a typo in the form, a mailbox that bounces — cannot stop the lead
+    //    reaching you. That would be exactly the wrong thing to lose.
+    let replyFailed: string | null = null;
+    try {
+      await client.send({
+        from: `${ownerName} <${user}>`,
+        to: submission.email,
+        replyTo: recipient,
+        subject: buildReplySubject(ownerName),
+        content: buildReplyText(submission, ownerName),
+        html: buildReplyHtml(submission, ownerName, siteUrl),
+      });
+    } catch (error) {
+      replyFailed = error instanceof Error ? error.message : String(error);
+      console.error("Acknowledgement to sender failed:", replyFailed);
+    }
+
+    // 2. The lead, to you.
     await client.send({
       from: `Portfolio <${user}>`,
       to: recipient,
       // So hitting reply in your mail client answers the visitor, not yourself.
       replyTo: `${submission.name} <${submission.email}>`,
-      subject: buildSubject(submission),
-      content: buildText(submission),
-      html: buildHtml(submission, env("ADMIN_INBOX_URL")),
+      subject: buildAlertSubject(submission),
+      content: buildAlertText(submission),
+      html: buildAlertHtml(submission, env("ADMIN_INBOX_URL")),
     });
 
-    await recordResult(submission.id, true, null);
-    return json({ ok: true });
+    // email_sent tracks the alert — the one whose absence you would notice.
+    // A failed acknowledgement is recorded but does not mark the row failed.
+    await recordResult(
+      submission.id,
+      true,
+      replyFailed ? `Acknowledgement to sender failed: ${replyFailed}` : null
+    );
+    return json({ ok: true, acknowledgement: replyFailed ? "failed" : "sent" });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     console.error("Failed to send notification:", detail);

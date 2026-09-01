@@ -67,7 +67,6 @@ holding your leads. See [Where your leads go](#where-your-leads-go).
 - **A globe that flies down the page** — one keyframe per section, joined by a Catmull-Rom spline and chased by critically damped springs, so the globe travels with your scroll instead of cutting between positions.
 - **Mouse-magnetized particle field** — a 2D canvas layer behind the contact section whose particles drift, fade and lean toward the cursor.
 - **Mobile-aware scenes** — the 3D canvas rescales and repositions below 853px so the astronaut never fights the copy for space.
-- A drop-in [COBE](https://cobe.vercel.app) marker globe (`components/portfolio/globe.tsx` + `constants/globe-constants.ts`) also ships with the repo if you want the lighter, cheaper option.
 
 **Motion & UI**
 - Scroll-driven section reveals and layout transitions with [Motion](https://motion.dev) (Framer Motion's successor).
@@ -98,17 +97,25 @@ POST /api/contact           validates every field, then writes one row
         ▼
 contact_submissions         the lead is now safe
         │
-        ├──▶ Database Webhook ─▶ notify-contact Edge Function ─▶ your SMTP
-        │                          (credentials live in Supabase)
+        ├──▶ Database Webhook ─▶ notify-contact Edge Function
+        │                          ├─ ✉ acknowledgement to the sender
+        │                          └─ ✉ the lead to you (Reply-To: sender)
+        │                             SMTP credentials live in Supabase
         │
         ▼
 Read it at  /admin          your private inbox — search, page, delete
 ```
 
-**The row is written first, and the email is a consequence of it.** That
-ordering is deliberate: a bounced SMTP password costs you a notification, never
-the lead itself. The Edge Function writes its result back to the row, so a
-failed send shows up in `/admin` as a warning instead of disappearing.
+**Two emails go out, and the sender's goes first.** Someone who has just written
+to a stranger is the one waiting on a reply; you are not. They get a short
+acknowledgement, you get the lead with `Reply-To` set to them, so hitting reply
+answers the visitor rather than yourself.
+
+**The row is written before either.** A bounced SMTP password costs you a
+notification, never the lead itself, and the Edge Function writes its result
+back to the row so a failed send shows up in `/admin` instead of disappearing. A
+bad address in the form cannot stop the lead reaching you — the two sends are
+independent.
 
 **Nothing in this repo can send email.** The SMTP credentials are Supabase
 secrets, set once with `supabase secrets set`. Clone the repo and you have
@@ -166,7 +173,7 @@ teardown is one paragraph in [`docs/customization.md`](docs/customization.md#6-t
 | Language | TypeScript 5 (strict) |
 | UI | React 19 |
 | 3D | [Three.js](https://threejs.org) r184, [React Three Fiber](https://r3f.docs.pmnd.rs) 9, [`@react-three/drei`](https://github.com/pmndrs/drei) 10, [`maath`](https://github.com/pmndrs/maath), [`postprocessing`](https://github.com/pmndrs/postprocessing) |
-| Globe | Custom instanced-mesh GLSL shader globe (+ optional [COBE](https://cobe.vercel.app) alternative) |
+| Globe | Custom instanced-mesh GLSL shader globe |
 | Animation | [Motion](https://motion.dev) 12 |
 | Styling | [Tailwind CSS v4](https://tailwindcss.com) (CSS-first `@theme` config), `tailwind-merge` |
 | Database | [Supabase](https://supabase.com) — Postgres, row-level security |
@@ -248,15 +255,14 @@ app/
 components/
   admin/                  Setup panel shown when Supabase is not connected
   portfolio/              Reusable pieces: astronaut, themed-globe (shader),
-                          globe (COBE), particles, timeline, marquee,
-                          orbiting-circles, project-card, project-details,
-                          flip-words, loader, page-loader, alert,
-                          parallax-background, copy-email-button, frameworks
+                          particles, timeline, marquee, orbiting-circles,
+                          project-card, project-details, flip-words, loader,
+                          page-loader, alert, parallax-background,
+                          copy-email-button, frameworks
   sections/               Page sections: navbar, hero, about, services,
                           projects, experiences, testimonial, contact, footer
 constants/
   portfolio-constants.ts  ← ALL site copy and data lives here
-  globe-constants.ts      COBE config and marker coordinates
 helpers/particles-helpers.ts
 lib/
   supabase/               config (is it connected?) · request-scoped client
@@ -266,9 +272,9 @@ proxy.ts                  Next 16's renamed middleware — refreshes the Supabas
 types/portfolio-types.ts  Shared types for every constant above
 supabase/
   migrations/             0001 table · 0002 admin model + RLS · 0003 seed admin
-  functions/              notify-contact — Edge Function that emails you a lead
-  templates/              Dark-themed Supabase Auth emails (reset, invite, …)
-  config.toml             CLI config, wires the templates up
+  functions/              notify-contact — the only Edge Function: acknowledges
+                          the sender, then emails you the lead
+  config.toml             CLI config
 docs/                     Architecture, customization, deployment, admin
 public/
   models/                 GLB 3D model (~3 MB)
@@ -340,7 +346,7 @@ them for your own before deploying:
 - **3D model** — `public/models/tenhun_falling_spaceman_fanart.glb` is third-party fan art sourced from Sketchfab. **Check its original license and keep the required attribution** before you use it in your own deployment.
 - **Project screenshots and client logos** belong to their respective owners.
 - The shader globe is a retheme of a public React Three Fiber demo — see the header comment in `components/portfolio/themed-globe.tsx` for what changed and why.
-- 3D helpers by the [pmndrs](https://github.com/pmndrs) ecosystem, animation by [Motion](https://motion.dev), marker globe by [COBE](https://cobe.vercel.app).
+- 3D helpers by the [pmndrs](https://github.com/pmndrs) ecosystem, animation by [Motion](https://motion.dev).
 
 If this repo helped you build your own portfolio, a ⭐ is very welcome.
 

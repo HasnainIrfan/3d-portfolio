@@ -163,10 +163,8 @@ entirely: delete `app/api/contact/`, `app/admin/`, `lib/admin/`,
 contact form at a `mailto:` link.
 
 **Drop the shader globe** (the heaviest piece on the page): remove
-`<ThemedGlobe />` from `components/portfolio/home-page.tsx`. Or swap in the
-lighter COBE marker globe that also ships here — render
-`components/portfolio/globe.tsx` and edit the marker coordinates in
-`constants/globe-constants.ts`.
+`<ThemedGlobe />` from `components/portfolio/home-page.tsx`. Nothing else
+depends on it.
 
 **Add a section:** create it in `components/sections/`, add it to the list in
 `home-page.tsx`, and — if the shader globe is still in play — add a matching

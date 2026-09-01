@@ -56,6 +56,8 @@ supabase secrets set \
   SMTP_USER=you@example.com \
   SMTP_PASS='app-password-not-your-account-password' \
   CONTACT_RECIPIENT_EMAIL=you@example.com \
+  OWNER_NAME="Your Name" \
+  SITE_URL=https://yoursite.com \
   NOTIFY_WEBHOOK_SECRET="$(openssl rand -hex 32)"
 ```
 
@@ -78,9 +80,9 @@ Amazon SES. Port 465 is implicit TLS; 587 negotiates STARTTLS.
 ## 3. Auth emails
 
 Password resets and invites are sent by Supabase, not by the app. Add your own
-SMTP under Authentication → **SMTP Settings** (the built-in sender is
-rate-limited and not for production), then paste the dark-themed templates from
-`supabase/templates/` into Authentication → **Emails**.
+SMTP under Authentication → **SMTP Settings** — the built-in sender is
+rate-limited and not meant for production. They use Supabase's default styling;
+this project ships no templates for them.
 
 ## 4. Deploy to Vercel
 
@@ -124,9 +126,9 @@ transport to worry about either.
 - [ ] Both `NEXT_PUBLIC_` values set in the host's dashboard, not just local `.env`
 - [ ] Edge Function deployed and its secrets set
 - [ ] Webhook created, with the `x-webhook-secret` header
-- [ ] Custom SMTP configured for auth emails, and the five templates pasted in
+- [ ] Custom SMTP configured under Authentication → SMTP Settings
 - [ ] `/admin` redirects to `/admin/login` when signed out
-- [ ] A test submission appears in `/admin` **and** arrives by email
+- [ ] A test submission appears in `/admin`, emails you, **and** acknowledges the sender
 - [ ] `metadataBase` points at the live domain
 - [ ] `npm run build` passes
 

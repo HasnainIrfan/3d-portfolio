@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FC, type MouseEvent } from "react";
+import { useEffect, useState, type FC, type MouseEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 const NAV_ITEMS = [
