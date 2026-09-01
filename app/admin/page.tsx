@@ -1,169 +1,53 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { type FC } from "react";
-import {
-  listSubmissions,
-  getSubmissionStats,
-  PAGE_SIZE,
-  type ContactSubmission,
-} from "@/lib/admin/data";
-import { getAdminState } from "@/lib/admin/auth";
+import { AdminPagination } from "@/components/admin/admin-pagination";
+import { AdminPanel } from "@/components/admin/admin-panel";
+import { AdminSearch } from "@/components/admin/admin-search";
+import { NotAdminNotice } from "@/components/admin/not-admin-notice";
 import { SetupNotice } from "@/components/admin/setup-notice";
+import { StatCard } from "@/components/admin/stat-card";
+import { SubmissionCard } from "@/components/admin/submission-card";
+import { formatDate } from "@/helpers/format-helpers";
+import { getAdminState } from "@/lib/admin/auth";
+import { PAGE_SIZE, getSubmissionStats, listSubmissions } from "@/lib/admin/data";
+import { type AdminPageProps } from "@/types/admin-types";
 import { LogoutButton } from "./logout-button";
-import { DeleteButton } from "./delete-button";
 
-// Reads a signed cookie and live data, so it must never be prerendered or
+// Reads a session cookie and live data, so it must never be prerendered or
 // cached — a cached copy would be one visitor's data served to the next.
 export const dynamic = "force-dynamic";
 
-interface PageProps {
-  searchParams: Promise<{ q?: string; page?: string }>;
-}
-
-const dateFormatter = new Intl.DateTimeFormat("en-GB", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
-const formatDate = (iso: string) => {
-  const parsed = new Date(iso);
-  return Number.isNaN(parsed.getTime()) ? "—" : dateFormatter.format(parsed);
-};
-
-const StatCard: FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div className="glass p-5">
-    <p className="text-eyebrow">{label}</p>
-    <p className="mt-2 text-3xl font-extrabold text-gradient">{value}</p>
-  </div>
-);
-
-const SubmissionRow: FC<{ row: ContactSubmission }> = ({ row }) => (
-  <article className="glass gradient-border p-5">
-    <header className="flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h3 className="truncate text-base font-semibold text-white">
-          {row.name}
-        </h3>
-        <a
-          href={`mailto:${row.email}`}
-          className="text-sm text-coral hover:underline break-all"
-        >
-          {row.email}
-        </a>
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        {row.budget && (
-          <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1 text-xs text-neutral-300">
-            {row.budget}
-          </span>
-        )}
-        <time
-          dateTime={row.created_at}
-          className="text-xs text-neutral-500 whitespace-nowrap"
-        >
-          {formatDate(row.created_at)}
-        </time>
-      </div>
-    </header>
-
-    <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-neutral-300">
-      {row.message}
-    </p>
-
-    {/* Only shown when the send is known to have failed. `null` means the
-        status was never recorded, which is not the same as a failure. */}
-    {row.email_sent === false && (
-      <p className="mt-4 rounded-lg border border-coral/25 bg-coral/[0.07] px-3 py-2 text-xs text-coral">
-        Notification email was not delivered
-        {row.email_error ? `: ${row.email_error}` : "."}
-      </p>
-    )}
-
-    {/* Collapsed by default — the metadata is for the rare case where a
-        submission looks like spam, not something to read every time. */}
-    <details className="mt-4 group">
-      <summary className="cursor-pointer list-none text-xs uppercase tracking-[0.2em] text-neutral-500 hover:text-neutral-300">
-        Metadata
-      </summary>
-      <dl className="mt-3 grid gap-2 text-xs text-neutral-400 sm:grid-cols-[7rem_1fr]">
-        <dt className="text-neutral-500">IP address</dt>
-        <dd className="break-all">{row.ip_address ?? "—"}</dd>
-        <dt className="text-neutral-500">User agent</dt>
-        <dd className="break-all">{row.user_agent ?? "—"}</dd>
-        <dt className="text-neutral-500">Submission ID</dt>
-        <dd className="break-all font-mono">{row.id}</dd>
-      </dl>
-    </details>
-
-    <footer className="mt-4 flex justify-end border-t border-white/[0.06] pt-3">
-      <DeleteButton id={row.id} name={row.name} />
-    </footer>
-  </article>
-);
-
-const AdminPage = async ({ searchParams }: PageProps) => {
-  // Second of the two checks — the proxy already confirmed the signature, this
-  // one guarantees no data is read without a valid session even if the matcher
-  // is ever changed or the route is reached some other way.
+const AdminPage = async ({ searchParams }: AdminPageProps) => {
   const state = await getAdminState();
 
-  // No Supabase project on this deployment. Not an error — the site runs
-  // without one — so it gets a setup panel rather than a redirect.
+  // Not an error: the site runs fine without a database, so this gets a setup
+  // panel rather than a redirect.
   if (state.status === "not-configured") {
     return (
-      <main className="mx-auto w-full max-w-lg px-5 py-16 md:py-24">
-        <div className="glass gradient-border p-6">
-          <SetupNotice />
-        </div>
-      </main>
+      <AdminPanel>
+        <SetupNotice />
+      </AdminPanel>
     );
   }
 
-  // Connected, but 0002 was never run. Told apart from "not an admin" so the
-  // fix points at the SQL editor rather than at the allowlist.
+  // Connected, but the migration was never run. Told apart from "not an admin"
+  // so the fix points at the SQL editor rather than at the allowlist.
   if (state.status === "schema-missing") {
     return (
-      <main className="mx-auto w-full max-w-lg px-5 py-16 md:py-24">
-        <div className="glass gradient-border p-6">
-          <SetupNotice variant="no-schema" />
-        </div>
-      </main>
+      <AdminPanel>
+        <SetupNotice variant="no-schema" />
+      </AdminPanel>
     );
   }
 
   if (state.status === "signed-out") redirect("/admin/login");
 
-  // A genuine Supabase user who is not on the admin list. Redirecting to
-  // /admin/login would bounce straight back here — they *are* signed in — so
-  // this is a dead end with a way out rather than a loop.
   if (state.status === "not-admin") {
     return (
-      <main className="mx-auto w-full max-w-lg px-5 py-16 md:py-24">
-        <div className="glass gradient-border space-y-4 p-6 text-sm">
-          <h1 className="text-lg font-semibold text-white">Not an admin</h1>
-          <p className="text-neutral-400">
-            You are signed in as{" "}
-            <span className="text-neutral-200">{state.email}</span>, but that
-            account is not on this project&rsquo;s admin list, so there is
-            nothing here for it to show.
-          </p>
-          <p className="text-neutral-400">
-            Grant it access by running{" "}
-            <code className="text-neutral-300">
-              select public.grant_admin(&apos;{state.email}&apos;);
-            </code>{" "}
-            in the Supabase SQL editor.
-          </p>
-          <LogoutButton />
-        </div>
-      </main>
+      <AdminPanel>
+        <NotAdminNotice email={state.email} />
+      </AdminPanel>
     );
   }
-
-  const admin = state.user;
 
   const params = await searchParams;
   const search = params.q ?? "";
@@ -192,7 +76,7 @@ const AdminPage = async ({ searchParams }: PageProps) => {
           <p className="text-eyebrow">Admin</p>
           <h1 className="text-heading mt-1">Contact submissions</h1>
           <p className="mt-1 text-sm text-neutral-400">
-            Signed in as {admin.email}
+            Signed in as {state.user.email}
           </p>
         </div>
         <LogoutButton />
@@ -203,30 +87,11 @@ const AdminPage = async ({ searchParams }: PageProps) => {
         <StatCard label="Last 7 days" value={String(stats.last7Days)} />
         <StatCard
           label="Most recent"
-          value={stats.latest ? formatDate(stats.latest).split(",")[0] : "—"}
+          value={stats.latest ? formatDate(stats.latest) : "—"}
         />
       </section>
 
-      {/* A plain GET form, so a search is a real URL you can bookmark, share
-          or reload without re-posting anything. */}
-      <form method="get" action="/admin" className="mt-8 flex gap-3">
-        <input
-          type="search"
-          name="q"
-          defaultValue={search}
-          placeholder="Search name, email or message…"
-          aria-label="Search submissions"
-          className="field-input field-input-focus mt-0 flex-1"
-        />
-        <button type="submit" className="btn-ghost px-5 py-2 text-sm">
-          <span>Search</span>
-        </button>
-        {search && (
-          <Link href="/admin" className="btn-ghost px-5 py-2 text-sm">
-            <span>Clear</span>
-          </Link>
-        )}
-      </form>
+      <AdminSearch search={search} />
 
       <p className="mt-6 text-sm text-neutral-500">
         {result.total === 0
@@ -238,42 +103,15 @@ const AdminPage = async ({ searchParams }: PageProps) => {
 
       <section className="mt-4 space-y-4">
         {result.rows.map((row) => (
-          <SubmissionRow key={row.id} row={row} />
+          <SubmissionCard key={row.id} row={row} />
         ))}
       </section>
 
-      {result.pageCount > 1 && (
-        <nav
-          aria-label="Pagination"
-          className="mt-10 flex items-center justify-between gap-4"
-        >
-          {result.page > 1 ? (
-            <Link
-              href={buildHref(result.page - 1)}
-              className="btn-ghost px-5 py-2 text-sm"
-            >
-              <span>← Newer</span>
-            </Link>
-          ) : (
-            <span />
-          )}
-
-          <span className="text-sm text-neutral-500">
-            Page {result.page} of {result.pageCount}
-          </span>
-
-          {result.page < result.pageCount ? (
-            <Link
-              href={buildHref(result.page + 1)}
-              className="btn-ghost px-5 py-2 text-sm"
-            >
-              <span>Older →</span>
-            </Link>
-          ) : (
-            <span />
-          )}
-        </nav>
-      )}
+      <AdminPagination
+        page={result.page}
+        pageCount={result.pageCount}
+        buildHref={buildHref}
+      />
     </main>
   );
 };

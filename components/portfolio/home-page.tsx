@@ -19,7 +19,7 @@ const Hero = dynamic(
 
 const ThemedGlobe = dynamic(
   () =>
-    import("@/components/portfolio/themed-globe").then((mod) => mod.ThemedGlobe),
+    import("@/components/globe/themed-globe").then((mod) => mod.ThemedGlobe),
   { ssr: false }
 );
 

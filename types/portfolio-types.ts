@@ -52,17 +52,6 @@ export interface Stat {
   label: string;
 }
 
-export interface CardProps {
-  style?: CSSProperties;
-  text?: string;
-  image?: string;
-  containerRef: RefObject<HTMLDivElement | null>;
-}
-
-export interface ProjectCardProps extends Project {
-  setPreview: (preview: string | null) => void;
-}
-
 export interface ProjectDetailsProps extends Project {
   closeModal: () => void;
 }
@@ -76,17 +65,6 @@ export interface FlipWordsProps {
   words: string[];
   duration?: number;
   className?: string;
-}
-
-export interface OrbitingCirclesProps extends HTMLAttributes<HTMLDivElement> {
-  className?: string;
-  children?: React.ReactNode;
-  reverse?: boolean;
-  duration?: number;
-  radius?: number;
-  path?: boolean;
-  iconSize?: number;
-  speed?: number;
 }
 
 export interface MarqueeProps extends HTMLAttributes<HTMLDivElement> {

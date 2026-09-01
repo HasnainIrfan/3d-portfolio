@@ -71,8 +71,8 @@ holding your leads. See [Where your leads go](#where-your-leads-go).
 **Motion & UI**
 - Scroll-driven section reveals and layout transitions with [Motion](https://motion.dev) (Framer Motion's successor).
 - Parallax mountain/sky background layers that respond to pointer movement.
-- Flip-word headline, marquee logo strip, orbiting-circles skill cloud, animated vertical experience timeline.
-- Project cards with a detail modal, copy-to-clipboard email button, and toast alerts.
+- Flip-word headline, a counter-rotating skills marquee, and an animated vertical experience timeline.
+- Project cards with a detail modal, a live-iframe preview that tilts to the cursor, and toast alerts.
 - A full-screen page loader that hides the layout shift while the WebGL scenes warm up.
 - Responsive from 320px up, keyboard-navigable, with `prefers-color-scheme`-aware browser chrome theming.
 
@@ -241,6 +241,9 @@ Full walkthrough in [`docs/admin.md`](docs/admin.md).
 
 ## Project structure
 
+Organised by *kind*, so anything you want to change has one obvious home. No
+file in the app is over ~250 lines.
+
 ```
 app/
   layout.tsx              Root layout, fonts, SEO metadata, viewport theming
@@ -248,35 +251,45 @@ app/
   globals.css             Tailwind v4 @theme tokens + keyframes
   manifest.ts             Web App Manifest
   icon.tsx apple-icon.tsx Dynamically generated favicons
-  admin/                  Protected inbox: page, layout, server actions
-    login/                Sign-in page, form, and the auth Server Actions
-  api/
-    contact/route.ts      Validate → persist one row to Supabase
+  admin/                  Protected inbox: page, actions, login
+  api/contact/route.ts    Validate → persist one row to Supabase
+
 components/
-  admin/                  Setup panel shown when Supabase is not connected
-  portfolio/              Reusable pieces: astronaut, themed-globe (shader),
-                          particles, timeline, marquee, orbiting-circles,
-                          project-card, project-details, flip-words, loader,
-                          page-loader, alert, parallax-background,
-                          copy-email-button, frameworks
-  sections/               Page sections: navbar, hero, about, services,
-                          projects, experiences, testimonial, contact, footer
-constants/
-  portfolio-constants.ts  ← ALL site copy and data lives here
-helpers/particles-helpers.ts
+  sections/               Thin page sections — composition only
+  globe/                  The shader globe: scene, meshes, scrim, wrapper
+  projects/               Panel, preview card, pinned + vertical layouts
+  contact/                Form, fields, details column
+  services/               Stacked cards, bullets, CTA
+  about/                  Bio, stat cards, skills marquee
+  navbar/                 Brand, links, mobile menu, hire-me button
+  admin/                  Inbox cards, search, pagination, setup panels
+  portfolio/              Shared pieces: astronaut, particles, timeline, …
+  ui/                     Cross-section primitives (section-header)
+
+constants/                All copy, data and tuning — no strings in components
+  hero-constants.ts       Name, role, tagline, stats
+  projects-constants.ts   Case studies + showcase tuning
+  services-constants.ts · experience-constants.ts · reviews-constants.ts
+  skills-constants.ts · social-constants.ts · navigation-constants.ts
+  globe-constants.ts      Palette, path keyframes, camera, orbits
+  contact-constants.ts · particles-constants.ts · about-constants.ts
+  portfolio-constants.ts  Barrel re-exporting the content files
+
+types/                    Every shared interface, one file per domain
+hooks/                    Reusable behaviour (scroll, pointer, in-view, forms)
+helpers/                  Pure functions (math, formatting, geometry, scroll)
+animations/               Motion variants and springs, shared across sections
 lib/
   supabase/               config (is it connected?) · request-scoped client
   admin/                  auth (signed in? admin?) · data (queries)
+  globe/                  GLSL shader sources
+
 proxy.ts                  Next 16's renamed middleware — refreshes the Supabase
                           session and gates every /admin request
-types/portfolio-types.ts  Shared types for every constant above
 supabase/
-  migrations/0001_init.sql  The whole schema in one file: table, RLS,
-                          admin allowlist, and the grant_admin helpers
-  functions/              notify-contact — the only Edge Function: acknowledges
-                          the sender, then emails you the lead
-  config.toml             CLI config
-docs/                     Architecture, customization, deployment, admin
+  migrations/0001_init.sql  The whole schema in one file
+  functions/                notify-contact — acknowledges the sender, emails you
+  config.toml               CLI config
 public/
   models/                 GLB 3D model (~3 MB)
   assets/                 Images, project shots, tech logos, social icons
@@ -286,12 +299,11 @@ public/
 
 Fork it, then work through these four steps. Steps 1–3 need no component edits.
 
-**1. Replace the content.** Open `constants/portfolio-constants.ts` — it holds
-`HERO_NAME`, `HERO_ROLE`, `HERO_LOCATION`, `HERO_TAGLINE`, `STATS`,
-`MY_PROJECTS`, `SERVICES`, `EXPERIENCES`, `REVIEWS`, `MY_SOCIALS`,
-`FRAMEWORK_SKILLS`, `SKILL_CHIPS`, `FLIP_WORDS` and `CONTACT_EMAIL`. Every entry
-is typed against `types/portfolio-types.ts`, so TypeScript tells you the moment
-a field is missing.
+**1. Replace the content.** Everything lives in `constants/`, one file per
+domain — `hero-constants.ts`, `projects-constants.ts`, `services-constants.ts`,
+`experience-constants.ts`, `reviews-constants.ts`, `skills-constants.ts`,
+`social-constants.ts`. No component holds a string. Every entry is typed against
+`types/`, so TypeScript tells you the moment a field is missing.
 
 **2. Swap the images.** Drop project screenshots into `public/assets/projects/`
 and tech logos into `public/assets/logos/`, then point the `image` / `path`

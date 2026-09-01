@@ -8,28 +8,24 @@ Work top to bottom; each step is independent.
 
 ---
 
-## 1. Content — `constants/portfolio-constants.ts`
+## 1. Content — the `constants/` folder
 
-This one file drives the whole site. Everything is typed against
-`types/portfolio-types.ts`, so if you miss a field, TypeScript tells you before
-the page does.
+Every string on the site lives here, one file per domain. No component holds
+copy. Everything is typed against `types/`, so if you miss a field, TypeScript
+tells you before the page does.
 
-| Export | Shows up in | Notes |
+| Export | File | Shows up in |
 | --- | --- | --- |
-| `HERO_NAME` | Hero headline | |
-| `HERO_ROLE` | Hero subhead | |
-| `HERO_LOCATION` | Hero, contact | |
-| `HERO_TAGLINE` | Hero paragraph | One or two sentences reads best |
-| `FLIP_WORDS` | Animated word in the headline | Keep them a similar length or the line jumps |
-| `STATS` | About strip | Hand-written copy, **not** derived — update it when your project count changes |
-| `MY_PROJECTS` | Projects grid + detail modal | See below |
-| `SERVICES` | Services cards | `title`, `description`, `icon`, `bullets[]` |
-| `EXPERIENCES` | Timeline | `title`, `job`, `date`, `contents[]` |
-| `REVIEWS` | Testimonials | The layout splits them evenly, so an even count looks best |
-| `FRAMEWORK_SKILLS` | Orbiting-circles cloud | **Slugs**, not labels — see below |
-| `SKILL_CHIPS` | Skill pills | Free text |
-| `MY_SOCIALS` | Navbar + footer | `name`, `href`, `icon` path under `public/assets/socials/` |
-| `CONTACT_EMAIL` | Copy-email button, mailto links | |
+| `HERO_NAME` `HERO_ROLE` `HERO_LOCATION` `HERO_TAGLINE` | `hero-constants.ts` | The headline block |
+| `FLIP_WORDS` | `hero-constants.ts` | Animated word — keep them a similar length or the line jumps |
+| `STATS` | `hero-constants.ts` | About strip. Hand-written, **not** derived — update it when your project count changes |
+| `MY_PROJECTS` | `projects-constants.ts` | Projects grid + detail modal. See below |
+| `SERVICES` | `services-constants.ts` | `title`, `description`, `icon`, `bullets[]` |
+| `EXPERIENCES` | `experience-constants.ts` | `title`, `job`, `date`, `contents[]` |
+| `REVIEWS` | `reviews-constants.ts` | The layout splits them evenly, so an even count looks best |
+| `SKILL_CHIPS` | `skills-constants.ts` | Skill pills, free text |
+| `MY_SOCIALS` `CONTACT_EMAIL` | `social-constants.ts` | Navbar, footer, mailto links |
+| `NAV_ITEMS` | `navigation-constants.ts` | The header links and their anchors |
 
 ### A project entry
 
@@ -56,12 +52,6 @@ the page does.
 
 Three to eight projects is the sweet spot for the grid.
 
-### `FRAMEWORK_SKILLS` is slugs
-
-These are icon slugs, not display names — `"react"`, `"threejs"`,
-`"visualstudiocode"`. Use the exact slug the icon set expects; a typo renders a
-blank orbit slot rather than an error.
-
 ---
 
 ## 2. Images — `public/assets/`
@@ -69,9 +59,9 @@ blank orbit slot rather than an error.
 | Folder | Holds | Advice |
 | --- | --- | --- |
 | `projects/` | Project screenshots | Roughly 16:9. Export as **WebP** — the originals here are heavy JPG/PNG |
-| `logos/` | Tech logos for project tags and the marquee | SVG |
+| `logos/` | Tech logos for the project tags | SVG |
 | `socials/` | Social icons | SVG, monochrome so they inherit colour |
-| *(root)* | `sky.jpg`, `mountain-1..3.png`, `planets.png`, `grid.png` | The parallax background plates |
+| *(root)* | `sky.jpg`, `mountain-1..3.png`, `planets.png` | The parallax background plates |
 
 Replacing the parallax plates changes the whole mood of the hero. Keep the same
 filenames and you won't have to touch `parallax-background.tsx`.
@@ -163,8 +153,9 @@ entirely: delete `app/api/contact/`, `app/admin/`, `lib/admin/`,
 contact form at a `mailto:` link.
 
 **Drop the shader globe** (the heaviest piece on the page): remove
-`<ThemedGlobe />` from `components/portfolio/home-page.tsx`. Nothing else
-depends on it.
+`<ThemedGlobe />` from `components/portfolio/home-page.tsx`, then delete
+`components/globe/`, `lib/globe/`, `constants/globe-constants.ts` and the
+`use-globe-*` hooks. Nothing else depends on them.
 
 **Add a section:** create it in `components/sections/`, add it to the list in
 `home-page.tsx`, and — if the shader globe is still in play — add a matching
