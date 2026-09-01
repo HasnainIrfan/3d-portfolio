@@ -7,7 +7,8 @@ import {
   PAGE_SIZE,
   type ContactSubmission,
 } from "@/lib/admin/data";
-import { getAdminSession } from "@/lib/admin/session";
+import { getAdminState } from "@/lib/admin/auth";
+import { SetupNotice } from "@/components/admin/setup-notice";
 import { LogoutButton } from "./logout-button";
 import { DeleteButton } from "./delete-button";
 
@@ -107,8 +108,62 @@ const AdminPage = async ({ searchParams }: PageProps) => {
   // Second of the two checks — the proxy already confirmed the signature, this
   // one guarantees no data is read without a valid session even if the matcher
   // is ever changed or the route is reached some other way.
-  const session = await getAdminSession();
-  if (!session) redirect("/admin/login");
+  const state = await getAdminState();
+
+  // No Supabase project on this deployment. Not an error — the site runs
+  // without one — so it gets a setup panel rather than a redirect.
+  if (state.status === "not-configured") {
+    return (
+      <main className="mx-auto w-full max-w-lg px-5 py-16 md:py-24">
+        <div className="glass gradient-border p-6">
+          <SetupNotice />
+        </div>
+      </main>
+    );
+  }
+
+  // Connected, but 0002 was never run. Told apart from "not an admin" so the
+  // fix points at the SQL editor rather than at the allowlist.
+  if (state.status === "schema-missing") {
+    return (
+      <main className="mx-auto w-full max-w-lg px-5 py-16 md:py-24">
+        <div className="glass gradient-border p-6">
+          <SetupNotice variant="no-schema" />
+        </div>
+      </main>
+    );
+  }
+
+  if (state.status === "signed-out") redirect("/admin/login");
+
+  // A genuine Supabase user who is not on the admin list. Redirecting to
+  // /admin/login would bounce straight back here — they *are* signed in — so
+  // this is a dead end with a way out rather than a loop.
+  if (state.status === "not-admin") {
+    return (
+      <main className="mx-auto w-full max-w-lg px-5 py-16 md:py-24">
+        <div className="glass gradient-border space-y-4 p-6 text-sm">
+          <h1 className="text-lg font-semibold text-white">Not an admin</h1>
+          <p className="text-neutral-400">
+            You are signed in as{" "}
+            <span className="text-neutral-200">{state.email}</span>, but that
+            account is not on this project&rsquo;s admin list, so there is
+            nothing here for it to show.
+          </p>
+          <p className="text-neutral-400">
+            Grant it access by running{" "}
+            <code className="text-neutral-300">
+              select public.grant_admin(&apos;{state.email}&apos;);
+            </code>{" "}
+            in the Supabase SQL editor.
+          </p>
+          <LogoutButton />
+        </div>
+      </main>
+    );
+  }
+
+  const admin = state.user;
 
   const params = await searchParams;
   const search = params.q ?? "";
@@ -137,7 +192,7 @@ const AdminPage = async ({ searchParams }: PageProps) => {
           <p className="text-eyebrow">Admin</p>
           <h1 className="text-heading mt-1">Contact submissions</h1>
           <p className="mt-1 text-sm text-neutral-400">
-            Signed in as {session.email}
+            Signed in as {admin.email}
           </p>
         </div>
         <LogoutButton />

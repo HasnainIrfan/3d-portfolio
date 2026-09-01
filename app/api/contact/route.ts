@@ -1,17 +1,25 @@
+/**
+ * The contact form endpoint.
+ *
+ * It does one thing: validate an enquiry and store it. It used to also send the
+ * notification email over SMTP, which meant SMTP credentials in the deployment
+ * and a mail library in the bundle. That job now belongs to a Supabase Edge
+ * Function triggered by the insert — see supabase/functions/notify-contact —
+ * so the credentials live in Supabase and this route stays a single write.
+ *
+ * The write goes through the anon key under row-level security. The `anyone can
+ * submit` policy in 0001 permits the insert and nothing else: no select, no
+ * update, no delete. An anonymous visitor can add a row and can never read one
+ * back, including their own.
+ */
+
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import nodemailer from "nodemailer";
+import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { CONTACT_EMAIL } from "@/constants/portfolio-constants";
 
 export const runtime = "nodejs";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const smtpHost = process.env.SMTP_HOST;
-const smtpPort = Number(process.env.SMTP_PORT || 465);
-const smtpUser = process.env.SMTP_USER;
-const smtpPass = process.env.SMTP_PASS;
-const recipientEmail =
-  process.env.CONTACT_RECIPIENT_EMAIL || "hasnainirfandeveloper@gmail.com";
+export const dynamic = "force-dynamic";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -21,14 +29,6 @@ interface Body {
   budget?: string;
   message?: string;
 }
-
-const escapeHtml = (s: string) =>
-  s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 
 export async function POST(req: Request) {
   let body: Body;
@@ -55,27 +55,39 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
-  if (name.length > 200 || email.length > 200 || message.length > 5000) {
+  // Mirrors the CHECK constraints on the table, so an over-long field is
+  // rejected here with a readable message rather than as a database error.
+  if (name.length > 120 || email.length > 200 || message.length > 5000) {
     return NextResponse.json({ error: "Payload too large." }, { status: 413 });
   }
 
-  if (!supabaseUrl || !supabaseServiceKey) {
-    console.error("Supabase environment variables are missing.");
+  // No database on this deployment. A forked copy with an empty .env lands
+  // here, and the honest answer is an address they can write to — not a 500
+  // that reads like the visitor did something wrong.
+  if (!isSupabaseConfigured) {
     return NextResponse.json(
-      { error: "Server is not configured." },
-      { status: 500 }
+      {
+        error: `The contact form is not connected on this deployment. Please email ${CONTACT_EMAIL} directly.`,
+      },
+      { status: 503 }
     );
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { persistSession: false },
-  });
+  const supabase = await createClient();
+  if (!supabase) {
+    return NextResponse.json(
+      { error: `Please email ${CONTACT_EMAIL} directly.` },
+      { status: 503 }
+    );
+  }
 
   const forwarded = req.headers.get("x-forwarded-for") ?? "";
   const ip = forwarded.split(",")[0]?.trim() || null;
   const userAgent = req.headers.get("user-agent") ?? null;
 
-  const { error: dbError, data: inserted } = await supabase
+  // No `.select()` — the insert policy grants insert only, so asking for the
+  // row back would make PostgREST refuse the whole statement.
+  const { error: dbError } = await supabase
     .from("contact_submissions")
     .insert({
       name,
@@ -84,127 +96,30 @@ export async function POST(req: Request) {
       message,
       user_agent: userAgent,
       ip_address: ip,
-    })
-    .select("id, created_at")
-    .single();
+    });
 
   if (dbError) {
-    console.error(
-      "Supabase insert failed:",
-      JSON.stringify(
-        {
-          message: dbError.message,
-          code: dbError.code,
-          details: dbError.details,
-          hint: dbError.hint,
-        },
-        null,
-        2
-      )
-    );
+    console.error("Supabase insert failed:", {
+      message: dbError.message,
+      code: dbError.code,
+      hint: dbError.hint,
+    });
+
     const tableMissing =
       dbError.code === "42P01" ||
       dbError.code === "PGRST205" ||
       /relation .* does not exist/i.test(dbError.message || "") ||
       /could not find the table/i.test(dbError.message || "");
+
     return NextResponse.json(
       {
         error: tableMissing
-          ? "Supabase table 'contact_submissions' is missing. Run supabase/migrations/0001_contact_submissions.sql in the Supabase SQL editor."
+          ? "The database is connected but not set up yet. Run the files in supabase/migrations/ in the Supabase SQL editor."
           : "Could not save your message. Please try again.",
       },
       { status: 500 }
     );
   }
 
-  // Tracked so the failure can be shown in /admin. The send below is
-  // deliberately non-fatal — the message is already saved, and a visitor should
-  // not see an error because our mail provider is having a bad day — but
-  // "non-fatal" used to mean "invisible", which is how weeks of undelivered
-  // notifications go unnoticed.
-  let emailSent = false;
-  let emailError: string | null = null;
-
-  if (smtpHost && smtpUser && smtpPass) {
-    try {
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpPort === 465,
-        auth: { user: smtpUser, pass: smtpPass },
-      });
-
-      const subject = `New portfolio enquiry — ${name}`;
-      const text = `New portfolio contact form submission
-
-Name:    ${name}
-Email:   ${email}
-Budget:  ${budget || "—"}
-IP:      ${ip || "—"}
-Agent:   ${userAgent || "—"}
-
-Message:
-${message}
-
-Submission ID: ${inserted?.id}
-`;
-
-      const html = `
-        <div style="font-family:Inter,Arial,sans-serif;background:#0a0b1a;color:#f5f5f7;padding:24px;border-radius:16px;max-width:600px;margin:auto">
-          <h2 style="margin:0 0 16px;font-size:20px;background:linear-gradient(135deg,#5c33cc,#ea4884);-webkit-background-clip:text;background-clip:text;color:transparent;">New portfolio enquiry</h2>
-          <table style="width:100%;border-collapse:collapse;font-size:14px;">
-            <tr><td style="padding:6px 8px;color:#9ca0b3;width:120px">Name</td><td style="padding:6px 8px;color:#fff">${escapeHtml(name)}</td></tr>
-            <tr><td style="padding:6px 8px;color:#9ca0b3">Email</td><td style="padding:6px 8px;color:#fff"><a href="mailto:${escapeHtml(email)}" style="color:#ea4884">${escapeHtml(email)}</a></td></tr>
-            <tr><td style="padding:6px 8px;color:#9ca0b3">Budget</td><td style="padding:6px 8px;color:#fff">${escapeHtml(budget) || "&mdash;"}</td></tr>
-            <tr><td style="padding:6px 8px;color:#9ca0b3;vertical-align:top">Message</td><td style="padding:6px 8px;color:#fff;white-space:pre-wrap">${escapeHtml(message)}</td></tr>
-          </table>
-          <p style="margin-top:20px;font-size:11px;color:#6b6f80">IP: ${escapeHtml(ip || "—")} · Submission ID: ${escapeHtml(inserted?.id ?? "—")}</p>
-        </div>`;
-
-      await transporter.sendMail({
-        from: `"Portfolio · Hasnain" <${smtpUser}>`,
-        to: recipientEmail,
-        replyTo: email,
-        subject,
-        text,
-        html,
-      });
-      emailSent = true;
-    } catch (mailError) {
-      // Nodemailer puts the useful part in `response` — the raw SMTP reply,
-      // e.g. "550-5.4.5 Daily user sending limit exceeded". Preferred over
-      // `message`, which is often just "Data command failed".
-      const detail =
-        (mailError as { response?: string })?.response ??
-        (mailError as Error)?.message ??
-        String(mailError);
-      emailError = detail.slice(0, 500);
-      console.error("Email send failed:", detail);
-      // The DB row is already saved — still return success to the visitor.
-    }
-  } else {
-    emailError = "SMTP is not configured on this deployment.";
-    console.warn("SMTP not configured — skipping email send.");
-  }
-
-  // Best effort, and separate from the insert above on purpose: if these
-  // columns have not been added yet (see the migration), the notification
-  // status is simply not recorded — the submission itself is already safe.
-  if (inserted?.id) {
-    const { error: statusError } = await supabase
-      .from("contact_submissions")
-      .update({ email_sent: emailSent, email_error: emailError })
-      .eq("id", inserted.id);
-
-    if (statusError) {
-      console.error(
-        "Could not record email status (run supabase/migrations/" +
-          "0001_contact_submissions.sql to add the email_sent / email_error " +
-          "columns):",
-        statusError.message
-      );
-    }
-  }
-
-  return NextResponse.json({ ok: true, id: inserted?.id }, { status: 201 });
+  return NextResponse.json({ ok: true }, { status: 200 });
 }

@@ -90,50 +90,117 @@ or remove projects, update the numbers yourself.
 <Contact />
    └─ POST /api/contact          app/api/contact/route.ts   (runtime: nodejs)
         ├─ validate name / email / message, regex-check the address
-        ├─ escape every field for HTML
-        ├─ insert into Supabase `contact_submissions` (service-role key)
-        └─ send an SMTP notification via Nodemailer
+        └─ insert one row into contact_submissions, using the anon key
+
+contact_submissions INSERT
+   └─ Database Webhook → supabase/functions/notify-contact  (Deno)
+        ├─ send the alert over SMTP (secrets held by Supabase)
+        └─ write email_sent / email_error back onto the row
 ```
 
-Both sides are best-effort independent: a mail failure should not lose the
-submission, which is exactly why the row is written before the email is sent.
+The route no longer sends email. It used to, with Nodemailer, which meant SMTP
+credentials in the web deployment and a mail library in the server bundle.
+Moving that to an Edge Function left the route as a single validated write, and
+left the repository with no credential to leak.
 
-## Admin auth
+The insert deliberately does not `.select()` the row back. The `anyone can
+submit` policy grants INSERT and nothing else, so asking for the inserted row
+would make PostgREST refuse the whole statement.
 
-Two files carry the model, and both explain themselves in comments worth
-reading:
+## Auth
 
-- **`lib/admin/session.ts`** — the cookie is
-  `base64url(payload).base64url(hmacSha256(payload))`. Stateless, so it verifies
-  with no database round trip. Deliberately **not** a JWT: no dependency, and no
-  `alg` field that has to be validated to dodge the `alg: none` class of bug.
-  The signature is compared with `timingSafeEqual` after a length check, because
-  `===` leaks how much of the signature was right. Eight-hour lifetime.
-  `getAdminSession()` is wrapped in React's `cache` so several components can
-  call it without repeating the HMAC.
-- **`lib/admin/throttle.ts`** — 8 failures per key per 15-minute rolling window,
-  capped at 5,000 tracked keys with oldest-first eviction. The trade-off is
-  stated plainly in the file: on serverless, each instance counts separately.
+Two questions, kept apart, because conflating them is how a portfolio leaks its
+visitors' contact details:
 
-**`ADMIN_SESSION_SECRET` has no fallback.** A missing or short secret throws
-rather than defaulting, because a hardcoded default in a public repo is a
-skeleton key.
+| Question | Answered by |
+| --- | --- |
+| Are you a real user on this project? | Supabase Auth |
+| Are you allowed to read the enquiries? | A row in `public.admin_users` |
 
-`proxy.ts` (Next 16's renamed `middleware.ts`) gates `/admin` on the Node
-runtime, so it can verify the signature rather than merely check that a cookie
-exists. It does no database work — it runs on prefetches too — so the pages
-re-verify through `getAdminSession()` before reading anything.
+`lib/admin/auth.ts` resolves both into one `AdminState` — `admin`,
+`signed-out`, `not-admin`, or `not-configured` — memoized with React's `cache`
+so a layout, a page and an action can each ask without repeating the round trip.
 
-`app/admin/layout.tsx` sets `robots: { index: false, follow: false }`. The page
-lists visitors' names, emails and IPs.
+It calls `getUser()`, never `getSession()`. `getSession()` decodes whatever is
+in the cookie and trusts it; `getUser()` revalidates the token against the auth
+server. That is the difference between a check and a formality.
+
+### Enforced three times
+
+1. **`proxy.ts`** — bounces requests with no session before a page renders.
+2. **`getAdminState()`** in the page and in every Server Action. Next.js exposes
+   Server Actions as endpoints reachable by direct POST, so this is not a
+   repetition of the proxy's work.
+3. **Row-level security.** Nothing in this project uses a service-role key, so
+   the policies are the actual enforcement rather than a second opinion on top
+   of a client that bypasses them. A bypassed UI check returns zero rows.
+
+### The proxy has a second job
+
+Supabase access tokens are short-lived, and Server Components cannot write
+cookies. If the refreshed token pair is not written back in `proxy.ts` it is
+written back nowhere — and the symptom is an admin who gets logged out at
+seemingly random intervals, with nothing in the logs. The `getUser()` call there
+is what triggers the refresh; it is not a redundant check.
+
+On redirect, the refreshed cookies are copied onto the redirect response by
+hand. Miss that and the new tokens are dropped, so the next request starts from
+an expired session again.
+
+## What replaced what
+
+| Was | Now |
+| --- | --- |
+| `ADMIN_EMAIL` + `ADMIN_PASSWORD` in the environment | Supabase Auth users + an `admin_users` allowlist |
+| Hand-rolled HMAC session cookie (`lib/admin/session.ts`) | Supabase session cookies with refresh rotation |
+| In-memory login throttle (`lib/admin/throttle.ts`) | Supabase's own sign-in rate limiting, shared across instances |
+| `SUPABASE_SERVICE_ROLE_KEY` reads that bypass RLS | Every query runs as the caller, under RLS |
+| Nodemailer + four SMTP variables | `notify-contact` Edge Function, secrets held in Supabase |
+
+Eight environment variables became two, and both are public.
 
 ## Database
 
-One table, `contact_submissions`, created by
-`supabase/migrations/0001_contact_submissions.sql`. RLS is **on with no
-policies**: the server's service-role key bypasses RLS, and the browser-safe
-anon key therefore matches nothing. There is no accounts table — the single
-admin credential lives in the environment.
+Three migrations, all idempotent, in `supabase/migrations/`.
+
+**`contact_submissions`** — every enquiry. RLS with a deliberate asymmetry:
+
+| Role | May |
+| --- | --- |
+| `anon`, `authenticated` | INSERT only — a visitor cannot read back even their own row |
+| admins (`is_admin()`) | SELECT, DELETE |
+| anyone | *never* UPDATE — an enquiry is a record of what someone actually wrote |
+
+CHECK constraints bound every field's length. The insert policy is open to
+anonymous callers, so the REST endpoint is reachable directly with the public
+anon key; those bounds are what stop a direct caller writing megabytes.
+
+**`admin_users`** — the allowlist. Readable by admins, and writable by nobody:
+there is no insert, update or delete policy at all. Promotion happens in the SQL
+editor through `grant_admin()`, whose EXECUTE is revoked from `anon` and
+`authenticated` so it cannot be reached over RPC. Without that revoke, any
+signed-up user could promote themselves.
+
+**`is_admin()`** is `security definer` for a specific reason. The policies call
+it, and it reads `admin_users`, which has RLS. Evaluated as the caller, that
+recurses — the policy asks the function, the function triggers the policy, and
+Postgres raises "infinite recursion detected in policy". Running as the definer
+reads the table without RLS and breaks the cycle. Its `search_path` is pinned so
+a caller who can create objects cannot shadow `admin_users` with their own.
+
+## Degrading without a database
+
+`lib/supabase/config.ts` answers one question — `isSupabaseConfigured` — and
+never throws. It also rejects the placeholder values from `.env.example`, so a
+half-finished setup shows the setup panel rather than a DNS failure.
+
+Everything downstream branches on it: `createClient()` returns `null`, the
+contact route answers 503 with an address to write to instead, `/admin` renders
+`components/admin/setup-notice.tsx`, and the proxy lets requests through rather
+than redirecting to a login page that could not work either.
+
+A fork with an empty `.env` builds, deploys and runs. That is a supported state,
+not an error, and nothing logs red about it.
 
 ## Styling
 

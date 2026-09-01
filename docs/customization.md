@@ -155,10 +155,12 @@ Free, license-checked models: [Sketchfab](https://sketchfab.com/features/free-3d
 
 ## 6. Trimming what you don't need
 
-**Drop the contact backend** (no Supabase, no SMTP): delete `app/api/contact/`,
-`app/admin/`, `app/api/admin/`, `lib/admin/`, `supabase/`, `proxy.ts`, and point
-the contact form at a `mailto:` link or a form service. The rest of the site
-runs with zero environment variables.
+**Drop the contact backend.** You do not have to delete anything — leave the
+two Supabase variables unset and the site runs with the form pointing visitors
+at your email address and `/admin` showing a setup panel. To remove the code
+entirely: delete `app/api/contact/`, `app/admin/`, `lib/admin/`,
+`lib/supabase/`, `components/admin/`, `supabase/` and `proxy.ts`, then point the
+contact form at a `mailto:` link.
 
 **Drop the shader globe** (the heaviest piece on the page): remove
 `<ThemedGlobe />` from `components/portfolio/home-page.tsx`. Or swap in the
@@ -180,5 +182,6 @@ your new section without stopping.
 - [ ] The 3D model is yours, or you kept its attribution
 - [ ] Project screenshots are yours to publish
 - [ ] `metadataBase` set to your domain
+- [ ] Your own Supabase project, with your own admin in `admin_users`
 - [ ] `npm run build` passes
 - [ ] `LICENSE` updated to your name

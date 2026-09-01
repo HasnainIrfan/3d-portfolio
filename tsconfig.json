@@ -30,5 +30,8 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  // supabase/functions is Deno, not Next.js: it imports from jsr: and https:
+  // URLs that this compiler cannot resolve, and it is type-checked by `deno
+  // check` instead. Leaving it in `include` fails the build.
+  "exclude": ["node_modules", "supabase/functions"]
 }

@@ -1,142 +1,216 @@
-# Admin panel
+# The admin inbox
 
-A password-protected page at `/admin` listing everything submitted through the
-contact form. Read-only: it shows submissions, it does not edit them.
+A private page at `/admin` listing everything sent through the contact form.
+Sign-in is Supabase Auth; who counts as an admin is a row in a table you control
+from the SQL editor.
 
-The whole thing rests on two pieces:
+**There are no secrets in this application.** No admin password, no session
+signing key, no service-role key, no SMTP credentials. The whole deployment is
+two public values:
 
-- **One table** — `contact_submissions`. It is the only table in the project.
-- **One credential** — `ADMIN_EMAIL` + `ADMIN_PASSWORD`, held in the
-  environment. There is no accounts table, no user rows, nothing to seed.
-
-## One-time setup
-
-### 1. Apply the migration
-
-Open the Supabase dashboard → **SQL Editor**, paste the contents of
-`supabase/migrations/0001_contact_submissions.sql`, and run it. It creates
-`contact_submissions`, indexes it by date, and turns on RLS with no policies —
-the server's service-role key bypasses RLS, and the browser-safe anon key
-matches nothing, so the table is unreadable from the client.
-
-The script is safe to re-run, and it also drops the `admin_users` /
-`admin_login_attempts` tables and `verify_admin_credentials()` function from the
-older database-backed login, if you ever applied those.
-
-### 2. Set the environment variables
-
-| Variable | Purpose |
-| --- | --- |
-| `ADMIN_EMAIL` | The one admin address. Matched case-insensitively. |
-| `ADMIN_PASSWORD` | The one admin password. Matched exactly. |
-| `ADMIN_SESSION_SECRET` | Signs the login cookie. Min 32 chars. |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-side DB access. Never expose to the browser. |
-
-All five are already in your local `.env`. **Add them to your hosting provider's
-environment too** (Vercel → Settings → Environment Variables) or sign-in fails in
-production. Generate the session secret with:
-
-```bash
-openssl rand -base64 48
+```
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
 ```
 
-Pick a long, unique password — this login exposes every visitor's name, email
-address and IP.
+Both are optional. With neither set, the portfolio runs normally and `/admin`
+shows a short setup panel instead of failing.
 
-**Changing the password** is a matter of editing `ADMIN_PASSWORD` and
-redeploying. **Revoking every active session** is changing `ADMIN_SESSION_SECRET`
-instead, which invalidates all signed cookies immediately.
+---
 
-Until `ADMIN_EMAIL` and `ADMIN_PASSWORD` are both set, signing in returns a 503
-saying exactly that — it will not look like a wrong password.
+## How access works
 
-## Using it
+Two questions, kept deliberately separate:
 
-Go to `/admin`. Unauthenticated visitors are redirected to `/admin/login`.
+| Question | Answered by |
+| --- | --- |
+| Are you a real user on this project? | Supabase Auth |
+| Are you allowed to read the enquiries? | A row in `public.admin_users` |
 
-- **Search** matches name, email and message body.
-- **Pagination** is 25 per page, newest first.
-- **Metadata** on each card expands to show IP, user agent and submission ID —
-  useful for judging whether something is spam.
-- **Delete** sits at the bottom right of each card. The first click arms it, the
-  second confirms. There is no undo — the row is gone from the database.
-- **A red banner** on a card means the notification email for it never went out.
-  The SMTP server's own reply is quoted, so you can tell a rate limit from a bad
-  password. See *No email arriving* below.
+Conflating them is the mistake this design exists to avoid. If "signed in"
+implied "admin", then anyone who ever obtained an account on the project — a
+signup you left open, an invite meant for something else, an OAuth provider you
+enable next year — could read every visitor's name, email address and IP.
 
-## How the security works
+`admin_users` has no insert, update or delete policy. **Nothing the application
+can be tricked into doing will add an admin.** Promotion happens in the SQL
+editor, on purpose.
 
-Two independent checks guard the page:
+### Enforced in three places
 
-1. `proxy.ts` verifies the cookie's HMAC signature on every `/admin/*` request
-   and redirects to the login if it is missing, expired or forged. It touches no
-   database, because a proxy runs on every matched request including prefetches.
-2. `app/admin/page.tsx` calls `getAdminSession()` again before reading anything.
-   This is the one that actually matters — it holds even if the proxy matcher is
-   later changed.
+1. **`proxy.ts`** — bounces requests with no session before a page renders, and
+   refreshes the Supabase token on the way through.
+2. **The page and every Server Action** — `getAdminState()` re-checks, because
+   Server Actions are reachable by direct POST regardless of what the proxy did.
+3. **Row-level security** — the `admins can select / delete` policies. Since
+   nothing here uses a service-role key, this is not a second opinion on top of
+   a privileged client; it is the actual enforcement. A bypassed UI check
+   returns zero rows.
 
-Other properties worth knowing:
+---
 
-- The session cookie is `HttpOnly`, `SameSite=Lax`, and `Secure` in production.
-  It carries a signature, not a password, and expires after 8 hours.
-- Both the credential check and the cookie-signature check are constant-time, so
-  neither leaks how much of a guess was correct.
-- Wrong email and wrong password return the identical message, so the login
-  cannot be used to confirm the admin address.
-- 8 failed attempts from one IP in 15 minutes are refused. The counter is held
-  in memory rather than in a table — on a serverless host that means per
-  instance, which blunts a script hammering one instance but is not a global
-  limit. Ceding that was the price of getting down to a single table.
-- The `/admin` route sets `robots: noindex, nofollow`.
-- Search input is stripped to `[a-zA-Z0-9@._- ]` before it reaches PostgREST,
-  whose `or=(...)` filter is a string grammar and would otherwise be injectable.
+## Setup
 
-## No email arriving
+### 1. Run the migrations
 
-Saving the submission and emailing you about it are two separate steps, and only
-the first one is allowed to fail loudly. If the email step fails, the visitor
-still gets a success message and the message is still in `/admin` — that is
-deliberate, since the alternative is losing enquiries to a mail outage.
+Supabase Dashboard → **SQL Editor**. Paste and run each file in order. All three
+are idempotent — re-running is always safe.
 
-The cost of that choice is that a broken mailer is silent. So each submission now
-records whether its email went out, and `/admin` shows a red banner with the
-SMTP error on any that did not.
+| File | Creates |
+| --- | --- |
+| `supabase/migrations/0001_contact_submissions.sql` | The table, its index, length limits, and the anonymous insert policy |
+| `supabase/migrations/0002_admin_auth.sql` | `admin_users`, `is_admin()`, and the read/delete policies |
+| `supabase/migrations/0003_seed_admin_user.sql` | The `grant_admin` / `revoke_admin` / `create_admin_user` helpers |
 
-To find out what is wrong, check that banner first, then work down this list:
+### 2. Create your admin
 
-1. **`550-5.4.5 Daily user sending limit exceeded`** — Gmail has cut off the
-   sending account. A free Gmail account allows roughly 500 messages a day via
-   SMTP, and Google applies much tighter limits to accounts it thinks are being
-   used to send in bulk. The limit lifts on a rolling 24-hour basis. If it keeps
-   recurring, the account is being used for something else too, and the portfolio
-   should not share it — move to a transactional provider.
-2. **`535 Username and Password not accepted`** — the app password was revoked,
-   or `SMTP_PASS` has been pasted without its spaces. Gmail app passwords are 16
-   characters shown in four groups; either form works, but a truncated one does
-   not.
-3. **`SMTP is not configured on this deployment`** — `SMTP_HOST`, `SMTP_USER` or
-   `SMTP_PASS` is missing from that environment. This is the usual production
-   cause: the variables exist in your local `.env` but were never added to
-   Vercel, so mail works on localhost and silently does nothing once deployed.
-4. **No banner at all, and still no email** — the send succeeded and the problem
-   is delivery. Check spam. Mail sent through a personal Gmail account with a
-   `from` address that visitors do not recognise is a common spam classification.
+**Either** create the user in the Dashboard (Authentication → Users → Add user,
+with "Auto Confirm User" ticked), then run:
 
-`CONTACT_RECIPIENT_EMAIL` controls where enquiries go; it falls back to a
-hardcoded address in `app/api/contact/route.ts` if unset.
+```sql
+select public.grant_admin('you@example.com');
+```
 
-For anything more than an occasional enquiry, a transactional email provider
-(Resend, Postmark, SES) is the real fix. They are built for application mail,
-they do not have a personal daily quota, and they report bounces instead of
-silently dropping messages.
+**Or** do both in one statement:
 
-## Things this deliberately does not do
+```sql
+select public.create_admin_user('you@example.com', 'a-long-unique-password');
+```
 
-- **No account creation, no second admin.** One operator, one credential. A
-  signup form on an admin panel is a liability with no upside here.
-- **No edit.** You can delete a submission, but not rewrite one — an editable
-  record of who contacted you is worth less than an honest one.
-- **No undo on delete.** No soft-delete flag, no recycle bin. A list this small
-  does not justify a column every future query has to remember to filter on.
-- **No password reset by email.** Change `ADMIN_PASSWORD` and redeploy.
+The Dashboard route is the more durable of the two. `create_admin_user` writes
+to `auth.users` and `auth.identities` directly, and those tables belong to
+Supabase's auth service — their shape can change between releases.
+
+Check who has access at any time:
+
+```sql
+select email, created_at from public.admin_users order by created_at;
+```
+
+Remove someone with `select public.revoke_admin('them@example.com');` — that
+takes away the inbox, it does not delete their account.
+
+### 3. Connect the app
+
+Project Settings → API. Copy the **Project URL** and the **anon** key into
+`.env`, and into your host's environment variables:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+```
+
+The anon key is **not** a secret. It identifies the project; RLS decides what it
+can reach. Shipping it to browsers is the intended design.
+
+### 4. Turn off public signup
+
+Dashboard → Authentication → Providers → Email → **disable "Enable sign-ups"**.
+An account with no `admin_users` row already sees nothing, but there is no
+reason to let strangers create one.
+
+Then sign in at `/admin/login`.
+
+---
+
+## Lead notification emails
+
+The app does not send email. A Supabase Edge Function does, so the SMTP
+credentials live in Supabase and never touch this repository or your web host.
+
+```
+INSERT on contact_submissions
+  → Database Webhook
+    → notify-contact Edge Function
+      → your SMTP server
+      → writes email_sent / email_error back to the row
+```
+
+### Deploy it
+
+```bash
+supabase functions deploy notify-contact
+
+supabase secrets set \
+  SMTP_HOST=smtp.example.com \
+  SMTP_PORT=465 \
+  SMTP_USER=you@example.com \
+  SMTP_PASS='app-password-not-your-account-password' \
+  CONTACT_RECIPIENT_EMAIL=you@example.com \
+  NOTIFY_WEBHOOK_SECRET="$(openssl rand -hex 32)"
+```
+
+Keep that last value — the webhook has to send it back.
+
+### Wire up the webhook
+
+Dashboard → **Database → Webhooks → Create a new hook**:
+
+| Field | Value |
+| --- | --- |
+| Table | `contact_submissions` |
+| Events | `Insert` only |
+| Type | Supabase Edge Functions |
+| Edge Function | `notify-contact` |
+| HTTP Headers | `x-webhook-secret: <the value you generated>` |
+
+**That header is what protects the function.** Without it, anyone who discovers
+the URL can post a payload and make your SMTP account send mail from your
+domain. The function logs a warning and runs unprotected if the secret is unset,
+rather than silently pretending to be secure.
+
+### Auth emails
+
+Password resets, invites and magic links are sent by Supabase itself, through
+Authentication → **SMTP Settings**. Supabase's built-in sender is rate-limited
+and not meant for production, so add your own SMTP there too.
+
+Dark-themed templates matching the site are in `supabase/templates/` — paste
+each into Authentication → **Emails**:
+
+| File | Template |
+| --- | --- |
+| `confirm-signup.html` | Confirm signup |
+| `invite.html` | Invite user |
+| `magic-link.html` | Magic link |
+| `reset-password.html` | Reset password |
+| `change-email.html` | Change email address |
+
+Running locally with the CLI? `supabase/config.toml` already points at all five.
+
+---
+
+## Living with it
+
+**Forgot the password.** `/admin/login` → Supabase sends a reset through the
+template above. There is no password in any config file to look up any more.
+
+**A second admin.** Invite them (Authentication → Users → Invite), then
+`select public.grant_admin('them@example.com');`.
+
+**Signed in but told "Not an admin".** The account is real; it has no
+`admin_users` row. The page shows the exact SQL to fix it.
+
+**Locked out by rate limiting.** Supabase enforces sign-in limits at the auth
+server. Wait a few minutes. (The previous version counted failures in memory,
+which on serverless meant every instance counted separately — one of several
+reasons this moved to Supabase Auth.)
+
+**A lead never emailed.** Check `/admin` first. The row is written by the app and
+the email is sent by the Edge Function afterwards, so an enquiry present in the
+list with a "notification email was not delivered" warning is an SMTP problem,
+not a form problem. `supabase functions logs notify-contact` has the detail.
+
+---
+
+## What this replaced
+
+The first version kept an `admin_users` table with bcrypt hashes it managed
+itself. The second moved to `ADMIN_EMAIL` / `ADMIN_PASSWORD` in the environment,
+with a hand-rolled HMAC session cookie and an in-memory login throttle.
+
+Both worked. Supabase Auth brings password hashing, refresh-token rotation,
+shared rate limiting and password reset that a portfolio has no business
+implementing itself — and it removed four secrets (`ADMIN_EMAIL`,
+`ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`) plus the
+four SMTP variables from the deployment.

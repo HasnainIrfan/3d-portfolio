@@ -13,57 +13,87 @@ environment variables at all.
 ## 1. Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Open **SQL Editor**, paste the contents of
-   `supabase/migrations/0001_contact_submissions.sql`, and run it.
-   It creates `contact_submissions`, indexes it by date, and enables RLS with no
-   policies. The script is safe to re-run.
-3. Go to **Project Settings → API** and copy:
-   - the **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
-   - the **anon** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - the **service_role** key → `SUPABASE_SERVICE_ROLE_KEY`
+2. Open **SQL Editor** and run the three files in `supabase/migrations/`, in
+   order. All are idempotent.
 
-> The service-role key bypasses row-level security. Keep it server-side, never
-> give it a `NEXT_PUBLIC_` prefix, and rotate it immediately if it ever lands in
-> a commit or a client bundle.
+   | File | Creates |
+   | --- | --- |
+   | `0001_contact_submissions.sql` | The table, index, length limits, anonymous insert policy |
+   | `0002_admin_auth.sql` | `admin_users`, `is_admin()`, the read/delete policies |
+   | `0003_seed_admin_user.sql` | The `grant_admin` / `create_admin_user` helpers |
 
-RLS on with no policies is intentional: the server reads through the
-service-role key, and the anon key that *is* in the browser matches nothing.
+3. Create your admin — either in the Dashboard (Authentication → Users → Add
+   user, "Auto Confirm User" ticked) followed by:
 
-## 2. SMTP
+   ```sql
+   select public.grant_admin('you@example.com');
+   ```
 
-Any provider works — Gmail with an **App Password**, Zoho, Resend SMTP,
-Mailgun, Amazon SES.
+   or in one statement:
 
-| Variable | Value |
-| --- | --- |
-| `SMTP_HOST` | e.g. `smtp.gmail.com` |
-| `SMTP_PORT` | `465` (implicit TLS) or `587` (STARTTLS) |
-| `SMTP_USER` | The mailbox that sends |
-| `SMTP_PASS` | App password or API key — **not** your account password |
-| `CONTACT_RECIPIENT_EMAIL` | Where enquiries land. Optional; falls back to a hardcoded address in `app/api/contact/route.ts` — change that too |
+   ```sql
+   select public.create_admin_user('you@example.com', 'a-long-unique-password');
+   ```
 
-## 3. Admin credentials
+4. Turn off public signup: Authentication → Providers → Email → disable
+   **Enable sign-ups**.
+5. Project Settings → **API** → copy the **Project URL** and the **anon** key.
+
+> There is no service-role key in this project, and you should not add one. The
+> anon key is public by design — row-level security decides what it can read.
+
+## 2. The lead notification email
+
+The web app cannot send email. A Supabase Edge Function does, which is why no
+SMTP credential appears in your host's environment.
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+supabase functions deploy notify-contact
+
+supabase secrets set \
+  SMTP_HOST=smtp.example.com \
+  SMTP_PORT=465 \
+  SMTP_USER=you@example.com \
+  SMTP_PASS='app-password-not-your-account-password' \
+  CONTACT_RECIPIENT_EMAIL=you@example.com \
+  NOTIFY_WEBHOOK_SECRET="$(openssl rand -hex 32)"
 ```
 
-Use the output as `ADMIN_SESSION_SECRET` (minimum 32 characters — a shorter one
-makes the app throw rather than fall back to a default). Then set `ADMIN_EMAIL`
-and `ADMIN_PASSWORD` to your single admin login.
+Then Dashboard → **Database → Webhooks → Create a new hook**:
+
+| Field | Value |
+| --- | --- |
+| Table | `contact_submissions` |
+| Events | `Insert` only |
+| Type | Supabase Edge Functions |
+| Edge Function | `notify-contact` |
+| HTTP Headers | `x-webhook-secret: <the value you generated>` |
+
+That header is the only thing standing between the function and anyone who
+learns its URL. Skip it and your SMTP account becomes an open relay.
+
+Any provider works — Gmail with an **App Password**, Zoho, Resend, Mailgun,
+Amazon SES. Port 465 is implicit TLS; 587 negotiates STARTTLS.
+
+## 3. Auth emails
+
+Password resets and invites are sent by Supabase, not by the app. Add your own
+SMTP under Authentication → **SMTP Settings** (the built-in sender is
+rate-limited and not for production), then paste the dark-themed templates from
+`supabase/templates/` into Authentication → **Emails**.
 
 ## 4. Deploy to Vercel
 
 1. Push the repo to GitHub.
 2. [vercel.com/new](https://vercel.com/new) → import the repo. The Next.js
    preset is detected; nothing to change.
-3. **Settings → Environment Variables** → add every variable from
-   [`.env.example`](../.env.example) that you filled in, for **Production**,
-   **Preview** and **Development**.
+3. **Settings → Environment Variables** → add the two values from
+   [`.env.example`](../.env.example), for **Production**, **Preview** and
+   **Development**.
 4. Deploy.
 
-**Miss this step and `/admin` sign-in fails in production even though it works
-locally** — the environment is the only place the credential lives.
+Both are optional: the site deploys and runs without them. You just get the
+setup panel at `/admin` until they are set.
 
 ### Custom domain
 
@@ -83,38 +113,55 @@ anywhere with zero environment variables.
 Nothing here is Vercel-specific. Any Node **20.9+** host works — Netlify,
 Railway, Render, Fly.io, a VPS with `npm run build && npm run start`, or Docker
 on `node:20-alpine`. The 3D scenes are client-only (`ssr: false`), so no host
-needs a GPU. The contact route sets `runtime = "nodejs"` because Nodemailer
-needs it; an edge-only host will not run it.
+needs a GPU. Email is sent by Supabase, not by the host, so there is no mail
+transport to worry about either.
 
 ## Production checklist
 
-- [ ] Migration applied in Supabase
-- [ ] Every variable set in the host's dashboard, not just in local `.env`
-- [ ] `ADMIN_SESSION_SECRET` is 32+ random characters, unique to production
-- [ ] `ADMIN_PASSWORD` is long and not reused from anywhere else
-- [ ] Service-role key appears nowhere in the client bundle:
-      `npm run build && grep -r "service_role" .next/static` returns nothing
+- [ ] All three migrations run, in order
+- [ ] `select email from public.admin_users;` returns your address
+- [ ] Public signup disabled in Authentication → Providers → Email
+- [ ] Both `NEXT_PUBLIC_` values set in the host's dashboard, not just local `.env`
+- [ ] Edge Function deployed and its secrets set
+- [ ] Webhook created, with the `x-webhook-secret` header
+- [ ] Custom SMTP configured for auth emails, and the five templates pasted in
 - [ ] `/admin` redirects to `/admin/login` when signed out
-- [ ] A test submission arrives in both the inbox and the `/admin` table
+- [ ] A test submission appears in `/admin` **and** arrives by email
 - [ ] `metadataBase` points at the live domain
-- [ ] `npm run build` and `npm run lint` both pass
+- [ ] `npm run build` passes
+
+Worth confirming, since the whole design rests on it:
+
+```bash
+# Should return nothing at all.
+npm run build && grep -ri "service_role" .next/ | grep -v ".map"
+```
 
 ## Troubleshooting
 
-**`/admin` login fails in production, works locally.** The variables were not
-added to the host. Check `ADMIN_EMAIL`, `ADMIN_PASSWORD` and
-`ADMIN_SESSION_SECRET`, then redeploy — environment changes need a new build.
+**`/admin` shows "Database not connected".** The two `NEXT_PUBLIC_` values are
+missing or still hold `.env.example` placeholders. Environment changes need a
+redeploy to take effect.
 
-**"ADMIN_SESSION_SECRET is missing or shorter than 32 characters."** Exactly
-what it says. There is no fallback on purpose.
+**Signed in, but "Not an admin".** The Supabase account is real; it has no
+`admin_users` row. Run `select public.grant_admin('you@example.com');` — the
+page shows the exact statement.
 
-**HTTP 429 on login.** The throttle: 8 failures per IP per 15 minutes. It is
-held in memory, so a redeploy clears it.
+**Sign-in says "Invalid email or password" and you are sure it isn't.** Check the
+user exists under Authentication → Users and is **confirmed**. An unconfirmed
+user cannot sign in with a password.
 
-**The form submits but no email arrives.** The row is written to Supabase before
-the email is sent, so check `/admin` first — a row present with no email means
-SMTP, not the form. Port 465 vs 587 and app-password-vs-account-password are the
-usual causes.
+**Created the user with SQL and it still can't log in.** The `auth.identities`
+row is what password sign-in looks up. `create_admin_user` writes it; a
+hand-written `insert into auth.users` alone does not.
+
+**HTTP 429 on login.** Supabase's own sign-in rate limit. Wait a few minutes.
+
+**The form saves but no email arrives.** Check `/admin` first. A row that is
+present, with a "notification email was not delivered" warning, means SMTP —
+not the form. `supabase functions logs notify-contact` has the reason. A row
+present with *no* warning means the webhook never fired: check Database →
+Webhooks.
 
 **Login loops back to `/admin/login`.** The session cookie is being dropped.
-It is `Secure` in production, so the site must be served over HTTPS.
+Supabase auth cookies are `Secure` in production, so the site must be HTTPS.

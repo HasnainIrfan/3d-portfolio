@@ -1,0 +1,49 @@
+# Supabase CLI configuration.
+#
+# Only needed if you run the stack locally (`supabase start`) or deploy the
+# Edge Function from the CLI. Managing the project entirely through the
+# Dashboard is fine too — in that case the email templates below are pasted
+# into Authentication → Emails rather than applied from here.
+
+project_id = "portfolio"
+
+[auth]
+# Set this to your deployed origin in the Dashboard as well. Auth emails build
+# their links from it, so a stale value sends people to localhost.
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/admin"]
+
+# This project has exactly one way in: an admin created in SQL. Leaving signup
+# open would let anyone create an account on the project — they would still see
+# nothing without a row in admin_users, but there is no reason to allow it.
+enable_signup = false
+
+[auth.email]
+enable_confirmations = true
+
+# Dark-themed templates matching the site. In the hosted Dashboard these live
+# under Authentication → Emails; the CLI reads them from here.
+[auth.email.template.invite]
+subject = "You've been invited"
+content_path = "./templates/invite.html"
+
+[auth.email.template.confirmation]
+subject = "Confirm your email"
+content_path = "./templates/confirm-signup.html"
+
+[auth.email.template.recovery]
+subject = "Reset your password"
+content_path = "./templates/reset-password.html"
+
+[auth.email.template.magic_link]
+subject = "Your sign-in link"
+content_path = "./templates/magic-link.html"
+
+[auth.email.template.email_change]
+subject = "Confirm your new email address"
+content_path = "./templates/change-email.html"
+
+[functions.notify-contact]
+# The webhook carries its own shared secret in a header, so Supabase's own JWT
+# check is not the thing protecting this endpoint.
+verify_jwt = false

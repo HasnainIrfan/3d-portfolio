@@ -25,9 +25,12 @@ Not sure? Open an issue first.
 git clone https://github.com/<you>/myportfolio.git
 cd myportfolio
 npm install
-cp .env.example .env    # optional — the site runs without it
 npm run dev
 ```
+
+No `.env` needed. The two Supabase variables are optional, and running without
+them is a supported state the code branches on — if you touch that path, test it
+by leaving them unset.
 
 Before opening a PR:
 
@@ -75,5 +78,10 @@ devtools throttle on.
 Found something exploitable? **Don't open a public issue.** Email
 `hasnainirfandeveloper@gmail.com` directly.
 
-Never commit a `.env`, a real credential, or a service-role key. `.env*` is
-gitignored — keep it that way.
+Never commit a `.env` or a real credential. `.env*` is gitignored — keep it that
+way.
+
+This project deliberately has **no server-only secrets**: no service-role key,
+no admin password, no session signing key, no SMTP credentials. If a change
+needs one, that is worth discussing in an issue first — it is usually a sign the
+work belongs in a Supabase Edge Function or an RLS policy instead.

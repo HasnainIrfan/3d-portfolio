@@ -78,9 +78,10 @@ holding your leads. See [Where your leads go](#where-your-leads-go).
 - Responsive from 320px up, keyboard-navigable, with `prefers-color-scheme`-aware browser chrome theming.
 
 **Backend & content**
-- **Contact form** → validated Route Handler that persists the enquiry to Supabase **and** sends an SMTP notification via Nodemailer, with HTML escaping on every field.
-- **Private admin inbox at `/admin`** — stateless HMAC-signed session cookie (deliberately not a JWT), enforced twice: once in `proxy.ts` (Next 16's renamed middleware, on the Node runtime) and again in the page itself. Credentials live in environment variables, so there is no accounts table to seed. In-memory login throttling caps failures at 8 per IP per 15 minutes → HTTP 429. Submissions can be deleted from the UI.
-- **Supabase** with row-level security on and no policies: the service-role key reads server-side, the anon key matches nothing in the browser.
+- **Contact form** → validated Route Handler that persists the enquiry to Supabase. Email is sent afterwards by a Supabase Edge Function, so no mail library or credential is in the web app.
+- **Private admin inbox at `/admin`** — **Supabase Auth** for sign-in, plus an `admin_users` allowlist for authorisation, because "signed in" and "allowed to read strangers' contact details" are not the same question. Enforced in `proxy.ts`, again in the page and every Server Action, and again by row-level security.
+- **Zero secrets.** No admin password, no session signing key, no service-role key, no SMTP credentials — the entire deployment is two `NEXT_PUBLIC_` values, and RLS does the enforcing.
+- **Degrades instead of erroring.** With an empty `.env` the site builds and runs; `/admin` shows a setup panel and the contact form points visitors at your email address. No stack traces, no red console.
 - **SEO ready** — typed `metadata` with keywords and Open Graph tags, a Web App Manifest, and dynamically generated `icon` / `apple-icon` routes.
 
 ## Where your leads go
@@ -92,28 +93,40 @@ whole path in your hands.
 Visitor fills in the contact form
         │
         ▼
-POST /api/contact          validates the fields, escapes every one of them
+POST /api/contact           validates every field, then writes one row
+        │                   (anon key, INSERT-only under RLS)
+        ▼
+contact_submissions         the lead is now safe
         │
-        ├──▶  Saved to your Supabase table  →  never lost, even if email fails
-        │       contact_submissions
-        │
-        └──▶  Emailed to you via SMTP       →  you hear about it immediately
-                CONTACT_RECIPIENT_EMAIL
+        ├──▶ Database Webhook ─▶ notify-contact Edge Function ─▶ your SMTP
+        │                          (credentials live in Supabase)
         │
         ▼
-Read it at  /admin        your private inbox — search, page, delete
+Read it at  /admin          your private inbox — search, page, delete
 ```
 
-**The row is written before the email is sent.** That ordering is deliberate: a
-bounced SMTP password costs you a notification, never the lead itself. If a
-message is missing from your inbox but present in `/admin`, the problem is your
-mail credentials, not the form.
+**The row is written first, and the email is a consequence of it.** That
+ordering is deliberate: a bounced SMTP password costs you a notification, never
+the lead itself. The Edge Function writes its result back to the row, so a
+failed send shows up in `/admin` as a warning instead of disappearing.
+
+**Nothing in this repo can send email.** The SMTP credentials are Supabase
+secrets, set once with `supabase secrets set`. Clone the repo and you have
+nothing to leak.
 
 ### The `/admin` inbox
 
-Sign in at **`/admin/login`** with the `ADMIN_EMAIL` and `ADMIN_PASSWORD` you set
-in the environment. There is no sign-up, no accounts table, and no seeding step —
-one credential pair, and it lives only in your host's environment variables.
+Sign in at **`/admin/login`** with a Supabase Auth account. Being signed in is
+only half of it — reading the inbox needs a row in `public.admin_users`, which
+can only be written from the SQL editor:
+
+```sql
+select public.grant_admin('you@example.com');
+```
+
+That separation is the point. A Supabase project can accumulate accounts you
+never intended to give access to; without an allowlist, every one of them could
+read your visitors' names, email addresses and IPs.
 
 Once inside, `/admin` gives you:
 
@@ -127,15 +140,18 @@ Once inside, `/admin` gives you:
 
 Security, briefly — the detail is in [`docs/admin.md`](docs/admin.md):
 
-- Every `/admin` request is gated twice: once in `proxy.ts` before it reaches a
-  page, and again inside the page before it reads anything.
-- The session is an HMAC-signed cookie, verified with a constant-time compare,
-  and expires after 8 hours.
-- 8 failed logins from one IP in 15 minutes returns HTTP 429.
-- The table has row-level security **on with no policies**. Your server reads it
-  through the service-role key; the anon key that ships to browsers matches
-  nothing. Visitor emails and IPs are never one misconfigured policy away from
-  being public.
+- Gated three times: `proxy.ts` before a page renders, `getAdminState()` inside
+  the page and every Server Action, and the RLS policy in the database. Server
+  Actions are reachable by direct POST, so the second check is doing real work.
+- Sessions, password hashing, refresh-token rotation and sign-in rate limiting
+  are Supabase Auth's job, not this codebase's.
+- **No service-role key exists in this project.** Every query runs as whoever
+  made the request, so RLS is the actual enforcement rather than a second
+  opinion on top of a privileged client that bypasses it.
+- `anon` may INSERT into `contact_submissions` and nothing else — a visitor
+  cannot read back even the row they just wrote.
+- `admin_users` has no insert, update or delete policy at all. Nothing the app
+  can be tricked into doing will create an admin.
 - The page is `noindex, nofollow` — it lists real people's contact details.
 
 **Don't want any of this?** The site runs perfectly with zero environment
@@ -153,8 +169,9 @@ teardown is one paragraph in [`docs/customization.md`](docs/customization.md#6-t
 | Globe | Custom instanced-mesh GLSL shader globe (+ optional [COBE](https://cobe.vercel.app) alternative) |
 | Animation | [Motion](https://motion.dev) 12 |
 | Styling | [Tailwind CSS v4](https://tailwindcss.com) (CSS-first `@theme` config), `tailwind-merge` |
-| Database | [Supabase](https://supabase.com) (Postgres + RLS) |
-| Email | [Nodemailer](https://nodemailer.com) over SMTP, [EmailJS](https://www.emailjs.com) client fallback |
+| Database | [Supabase](https://supabase.com) — Postgres, row-level security |
+| Auth | [Supabase Auth](https://supabase.com/docs/guides/auth) via [`@supabase/ssr`](https://github.com/supabase/auth-js) |
+| Email | Supabase Edge Function (Deno) over SMTP — credentials held in Supabase |
 | Fonts | `next/font` — Funnel Display, self-hosted and preloaded |
 | Hosting | [Vercel](https://vercel.com) |
 
@@ -172,9 +189,10 @@ npm run dev
 
 Open <http://localhost:3000>.
 
-The marketing site renders with **no environment variables at all** — everything
-in `.env` is only needed for the contact form and `/admin`. If you just want to
-fork the front end, skip straight to [Make it your own](#make-it-your-own).
+The site renders with **no environment variables at all** — the two in
+`.env.example` are only needed for the contact form and `/admin`, and their
+absence is a supported state, not an error. If you just want the front end, skip
+straight to [Make it your own](#make-it-your-own).
 
 | Script | Does |
 | --- | --- |
@@ -185,29 +203,34 @@ fork the front end, skip straight to [Make it your own](#make-it-your-own).
 
 ## Environment variables
 
-Copy [`.env.example`](.env.example) to `.env`. Everything is server-side except
-the two `NEXT_PUBLIC_` values.
+Copy [`.env.example`](.env.example) to `.env`. There are two, both public, and
+**both optional**:
 
-| Variable | Required for | Purpose |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | contact form, `/admin` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | contact form | Browser-safe key. Matches nothing under RLS. |
-| `SUPABASE_SERVICE_ROLE_KEY` | contact form, `/admin` | Server-side DB access. **Never expose to the browser.** |
-| `ADMIN_EMAIL` | `/admin` | The one admin login address (matched case-insensitively) |
-| `ADMIN_PASSWORD` | `/admin` | The one admin password (matched exactly) |
-| `ADMIN_SESSION_SECRET` | `/admin` | Signs the session cookie. **Minimum 32 characters.** |
-| `SMTP_HOST` `SMTP_PORT` `SMTP_USER` `SMTP_PASS` | email notifications | Outbound SMTP credentials |
-| `CONTACT_RECIPIENT_EMAIL` | optional | Where enquiries are sent; falls back to a hardcoded address |
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
 
-Generate a session secret with:
+That is the entire list. No admin password, no session signing key, no
+service-role key, no SMTP credentials — **this project has no server-only
+secrets at all.**
+
+The anon key is not a secret; it identifies the project, and [row-level
+security](supabase/migrations/0002_admin_auth.sql) decides what it can reach.
+Shipping it to the browser is the intended design.
+
+With neither set, the site builds and runs: `/admin` shows a setup panel and the
+contact form asks visitors to email you directly. Nothing throws.
+
+**SMTP credentials** are Supabase secrets, not deployment variables:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+supabase secrets set SMTP_HOST=... SMTP_USER=... SMTP_PASS=... \
+                     CONTACT_RECIPIENT_EMAIL=... \
+                     NOTIFY_WEBHOOK_SECRET="$(openssl rand -hex 32)"
 ```
 
-`.env*` is gitignored — no secret has ever been committed to this repository.
-Set the same variables in your host's dashboard (Vercel → Settings →
-Environment Variables) or `/admin` sign-in will fail in production.
+Full walkthrough in [`docs/admin.md`](docs/admin.md).
 
 ## Project structure
 
@@ -219,10 +242,11 @@ app/
   manifest.ts             Web App Manifest
   icon.tsx apple-icon.tsx Dynamically generated favicons
   admin/                  Protected inbox: page, layout, server actions
+    login/                Sign-in page, form, and the auth Server Actions
   api/
-    contact/route.ts      Validate → persist to Supabase → send SMTP mail
-    admin/login|logout    Session cookie issue / clear
+    contact/route.ts      Validate → persist one row to Supabase
 components/
+  admin/                  Setup panel shown when Supabase is not connected
   portfolio/              Reusable pieces: astronaut, themed-globe (shader),
                           globe (COBE), particles, timeline, marquee,
                           orbiting-circles, project-card, project-details,
@@ -234,10 +258,17 @@ constants/
   portfolio-constants.ts  ← ALL site copy and data lives here
   globe-constants.ts      COBE config and marker coordinates
 helpers/particles-helpers.ts
-lib/admin/                credentials · session · throttle · data
-proxy.ts                  Next 16's renamed middleware — gates every /admin request
+lib/
+  supabase/               config (is it connected?) · request-scoped client
+  admin/                  auth (signed in? admin?) · data (queries)
+proxy.ts                  Next 16's renamed middleware — refreshes the Supabase
+                          session and gates every /admin request
 types/portfolio-types.ts  Shared types for every constant above
-supabase/migrations/      0001_contact_submissions.sql
+supabase/
+  migrations/             0001 table · 0002 admin model + RLS · 0003 seed admin
+  functions/              notify-contact — Edge Function that emails you a lead
+  templates/              Dark-themed Supabase Auth emails (reset, invite, …)
+  config.toml             CLI config, wires the templates up
 docs/                     Architecture, customization, deployment, admin
 public/
   models/                 GLB 3D model (~3 MB)
@@ -274,10 +305,12 @@ in `components/portfolio/astronaut.tsx`, and adjust `scale` / `position` in
 
 ## Deployment
 
-Deploys to Vercel with zero configuration — import the repo, add the environment
-variables, ship. The 3D scenes are client-only (`dynamic(..., { ssr: false })`),
-so any Node 20.9+ host works too. Step-by-step, including the one-time Supabase
-migration: [`docs/deployment.md`](docs/deployment.md).
+Deploys to Vercel with zero configuration — import the repo and ship; there are
+no required environment variables. Add the two Supabase values when you want the
+contact form and inbox. The 3D scenes are client-only
+(`dynamic(..., { ssr: false })`), so any Node 20.9+ host works too. Step-by-step,
+including the migrations and the Edge Function:
+[`docs/deployment.md`](docs/deployment.md).
 
 ## Performance notes
 
@@ -294,8 +327,8 @@ migration: [`docs/deployment.md`](docs/deployment.md).
 | --- | --- |
 | [`docs/architecture.md`](docs/architecture.md) | How the render pipeline, stacking contexts, data flow and 3D layer fit together |
 | [`docs/customization.md`](docs/customization.md) | Rebranding it as your own portfolio, end to end |
-| [`docs/deployment.md`](docs/deployment.md) | Vercel + Supabase + SMTP setup, production checklist |
-| [`docs/admin.md`](docs/admin.md) | The `/admin` inbox: auth model, migration, throttling |
+| [`docs/deployment.md`](docs/deployment.md) | Vercel + Supabase setup, Edge Function deploy, production checklist |
+| [`docs/admin.md`](docs/admin.md) | The `/admin` inbox: the Supabase Auth model, migrations, lead emails |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Conventions, PR flow, what's in scope |
 
 ## Credits & asset licensing

@@ -4,14 +4,14 @@
  * Server Actions for the admin area.
  *
  * Every export here is reachable by a direct POST from anywhere — Next.js
- * exposes Server Actions as endpoints, and `proxy.ts` only matches `/admin/*`
- * page requests, not the action endpoint. So the session check inside each
- * function is not a second line of defence, it is the only one.
+ * exposes Server Actions as endpoints, so the `getAdminUser()` check inside
+ * each function is doing real work, not repeating something the proxy already
+ * did. The matching RLS policy in the database is the backstop underneath it.
  */
 
 import { revalidatePath } from "next/cache";
 import { deleteSubmission } from "@/lib/admin/data";
-import { getAdminSession } from "@/lib/admin/session";
+import { getAdminUser } from "@/lib/admin/auth";
 
 export interface DeleteResult {
   ok: boolean;
@@ -21,8 +21,8 @@ export interface DeleteResult {
 export const deleteSubmissionAction = async (
   id: string
 ): Promise<DeleteResult> => {
-  const session = await getAdminSession();
-  if (!session) return { ok: false, error: "Not signed in." };
+  const admin = await getAdminUser();
+  if (!admin) return { ok: false, error: "Not signed in as an admin." };
 
   if (typeof id !== "string" || !id) {
     return { ok: false, error: "Missing submission id." };

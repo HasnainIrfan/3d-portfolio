@@ -1,14 +1,20 @@
 /**
- * Data access for the admin area: reads of the contact_submissions table,
- * which is the only table this project has.
+ * Data access for the admin area: reads of the contact_submissions table.
  *
- * Everything here uses the Supabase service-role key, which bypasses RLS. That
- * is only safe because none of it is reachable from the browser: these
- * functions are called from Server Components and Route Handlers, and the key
- * has no `NEXT_PUBLIC_` prefix so it cannot be bundled into client code.
+ * Every query here runs as the signed-in admin, through their own Supabase
+ * session — there is no service-role key in this project and nothing bypasses
+ * row-level security. The `admins can select / delete` policies in
+ * supabase/migrations/0002_admin_auth.sql are the actual enforcement; if a
+ * caller is not an admin these functions return nothing rather than raising,
+ * because the rows are simply not visible to them.
+ *
+ * That is a deliberate belt-and-braces arrangement: the pages check
+ * `getAdminState()` before calling anything here, and the database would refuse
+ * even if they forgot.
  */
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { type SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
 
 export interface ContactSubmission {
   id: string;
@@ -30,15 +36,17 @@ export const PAGE_SIZE = 25;
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export const getServiceClient = (): SupabaseClient => {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
-    throw new Error(
-      "NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must both be set."
-    );
+/**
+ * The caller's own Supabase client. Throws only when the deployment has no
+ * Supabase project at all — a case the admin pages check for and render a setup
+ * panel around, so it should never actually surface to a visitor.
+ */
+const requireClient = async (): Promise<SupabaseClient> => {
+  const supabase = await createClient();
+  if (!supabase) {
+    throw new Error("Supabase is not configured on this deployment.");
   }
-  return createClient(url, key, { auth: { persistSession: false } });
+  return supabase;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -65,7 +73,7 @@ export const listSubmissions = async (
   search: string,
   page: number
 ): Promise<SubmissionPage> => {
-  const supabase = getServiceClient();
+  const supabase = await requireClient();
   const term = sanitiseSearch(search);
 
   // Applied identically to the count and the fetch, so the clamp below is
@@ -133,7 +141,7 @@ export const getSubmissionStats = async (): Promise<{
   last7Days: number;
   latest: string | null;
 }> => {
-  const supabase = getServiceClient();
+  const supabase = await requireClient();
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   const [totalResult, weekResult, latestResult] = await Promise.all([
@@ -168,8 +176,9 @@ export const getSubmissionStats = async (): Promise<{
  * recycle bin, because a table you have to remember to filter is worse than an
  * honest delete for a list this small.
  *
- * The caller is responsible for having checked the session first; nothing in
- * this module knows about authentication.
+ * The caller checks the session first, and the `admins can delete` RLS policy
+ * checks it again in the database. A non-admin's delete matches no rows rather
+ * than raising, so a bypassed UI check silently accomplishes nothing.
  */
 export const deleteSubmission = async (id: string): Promise<void> => {
   // Rejected before the query so a malformed id cannot reach PostgREST as a
@@ -178,7 +187,7 @@ export const deleteSubmission = async (id: string): Promise<void> => {
     throw new Error("Invalid submission id.");
   }
 
-  const supabase = getServiceClient();
+  const supabase = await requireClient();
   const { error } = await supabase
     .from("contact_submissions")
     .delete()
