@@ -28,6 +28,7 @@
 
 - [What this is](#what-this-is)
 - [Features](#features)
+- [Where your leads go](#where-your-leads-go)
 - [Tech stack](#tech-stack)
 - [Quick start](#quick-start)
 - [Environment variables](#environment-variables)
@@ -53,6 +54,11 @@ role, projects, services, experience, testimonials, skills, socials — lives in
 single typed constants file, so you can fork this repo and have your own site
 running without touching a component. See [Make it your own](#make-it-your-own).
 
+**It captures leads, not just impressions.** Every contact-form enquiry is saved
+to your own database *and* emailed to you, and you read them in a private admin
+inbox at `/admin` — no third-party form service, no monthly fee, no one else
+holding your leads. See [Where your leads go](#where-your-leads-go).
+
 ## Features
 
 **3D & WebGL**
@@ -76,6 +82,65 @@ running without touching a component. See [Make it your own](#make-it-your-own).
 - **Private admin inbox at `/admin`** — stateless HMAC-signed session cookie (deliberately not a JWT), enforced twice: once in `proxy.ts` (Next 16's renamed middleware, on the Node runtime) and again in the page itself. Credentials live in environment variables, so there is no accounts table to seed. In-memory login throttling caps failures at 8 per IP per 15 minutes → HTTP 429. Submissions can be deleted from the UI.
 - **Supabase** with row-level security on and no policies: the service-role key reads server-side, the anon key matches nothing in the browser.
 - **SEO ready** — typed `metadata` with keywords and Open Graph tags, a Web App Manifest, and dynamically generated `icon` / `apple-icon` routes.
+
+## Where your leads go
+
+A portfolio's job is to turn a visitor into a conversation. This one keeps that
+whole path in your hands.
+
+```
+Visitor fills in the contact form
+        │
+        ▼
+POST /api/contact          validates the fields, escapes every one of them
+        │
+        ├──▶  Saved to your Supabase table  →  never lost, even if email fails
+        │       contact_submissions
+        │
+        └──▶  Emailed to you via SMTP       →  you hear about it immediately
+                CONTACT_RECIPIENT_EMAIL
+        │
+        ▼
+Read it at  /admin        your private inbox — search, page, delete
+```
+
+**The row is written before the email is sent.** That ordering is deliberate: a
+bounced SMTP password costs you a notification, never the lead itself. If a
+message is missing from your inbox but present in `/admin`, the problem is your
+mail credentials, not the form.
+
+### The `/admin` inbox
+
+Sign in at **`/admin/login`** with the `ADMIN_EMAIL` and `ADMIN_PASSWORD` you set
+in the environment. There is no sign-up, no accounts table, and no seeding step —
+one credential pair, and it lives only in your host's environment variables.
+
+Once inside, `/admin` gives you:
+
+| Feature | What it shows |
+| --- | --- |
+| **Two counters** | Total enquiries, and how many arrived in the last 7 days |
+| **The full list** | Newest first, 25 per page |
+| **Per enquiry** | Name, email, budget, the message, when it arrived, the visitor's user agent and IP, and whether the notification email actually sent |
+| **Search** | Across name, email and message |
+| **Delete** | Remove a submission when you're done with it |
+
+Security, briefly — the detail is in [`docs/admin.md`](docs/admin.md):
+
+- Every `/admin` request is gated twice: once in `proxy.ts` before it reaches a
+  page, and again inside the page before it reads anything.
+- The session is an HMAC-signed cookie, verified with a constant-time compare,
+  and expires after 8 hours.
+- 8 failed logins from one IP in 15 minutes returns HTTP 429.
+- The table has row-level security **on with no policies**. Your server reads it
+  through the service-role key; the anon key that ships to browsers matches
+  nothing. Visitor emails and IPs are never one misconfigured policy away from
+  being public.
+- The page is `noindex, nofollow` — it lists real people's contact details.
+
+**Don't want any of this?** The site runs perfectly with zero environment
+variables — point the form at a `mailto:` link and delete the backend. The
+teardown is one paragraph in [`docs/customization.md`](docs/customization.md#6-trimming-what-you-dont-need).
 
 ## Tech stack
 
