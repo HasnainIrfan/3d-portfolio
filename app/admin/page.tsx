@@ -12,15 +12,11 @@ import { PAGE_SIZE, getSubmissionStats, listSubmissions } from "@/lib/admin/data
 import { type AdminPageProps } from "@/types/admin-types";
 import { LogoutButton } from "./logout-button";
 
-// Reads a session cookie and live data, so it must never be prerendered or
-// cached — a cached copy would be one visitor's data served to the next.
 export const dynamic = "force-dynamic";
 
 const AdminPage = async ({ searchParams }: AdminPageProps) => {
   const state = await getAdminState();
 
-  // Not an error: the site runs fine without a database, so this gets a setup
-  // panel rather than a redirect.
   if (state.status === "not-configured") {
     return (
       <AdminPanel>
@@ -29,8 +25,6 @@ const AdminPage = async ({ searchParams }: AdminPageProps) => {
     );
   }
 
-  // Connected, but the migration was never run. Told apart from "not an admin"
-  // so the fix points at the SQL editor rather than at the allowlist.
   if (state.status === "schema-missing") {
     return (
       <AdminPanel>

@@ -16,7 +16,6 @@ interface GlobeMeshesProps {
   orbUniforms: Record<string, { value: unknown }>[];
 }
 
-/** The drawable contents of the globe: core, spike field and orbiting orbs. */
 export const GlobeMeshes = ({
   geometry,
   spikeMaterial,
@@ -25,7 +24,6 @@ export const GlobeMeshes = ({
   orbUniforms,
 }: GlobeMeshesProps) => (
   <>
-    {/* Opaque core, so you never see through to the far side's spikes. */}
     <mesh renderOrder={-1}>
       <sphereGeometry args={[GLOBE.sphereRadius, 32, 32]} />
       <meshBasicMaterial color={THEME.core} />

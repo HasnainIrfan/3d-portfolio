@@ -1,20 +1,9 @@
 import { type FC } from "react";
 
 interface SetupNoticeProps {
-  /** "no-project" — nothing connected. "no-schema" — connected, migrations
-   *  not run. Different mistakes, and pointing at the wrong one costs an
-   *  afternoon. */
   variant?: "no-project" | "no-schema";
 }
 
-/**
- * What /admin shows when the deployment has no Supabase project.
- *
- * This is the state a fresh fork lands in, and it is deliberately not an error:
- * nothing is broken, the feature simply is not connected yet. The portfolio
- * itself runs perfectly without a database, so a red stack trace here would be
- * both alarming and wrong.
- */
 export const SetupNotice: FC<SetupNoticeProps> = ({
   variant = "no-project",
 }) => (

@@ -12,11 +12,6 @@ import { type ServiceCardProps } from "@/types/services-types";
 import { ServiceBullets } from "./service-bullets";
 import { ServiceCta } from "./service-cta";
 
-/**
- * One card in the sticky stack. Each pins a little lower than the last and
- * shrinks as the next slides over it, so the pile reads as depth rather than
- * as a list that stopped scrolling.
- */
 export const ServiceCard: FC<ServiceCardProps> = ({
   service,
   index,

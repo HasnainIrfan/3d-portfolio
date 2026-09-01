@@ -1,5 +1,3 @@
-/** Work history, newest first, for the vertical timeline. */
-
 import { type Experience } from "@/types/portfolio-types";
 
 export const EXPERIENCES: Experience[] = [

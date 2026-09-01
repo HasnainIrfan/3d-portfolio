@@ -1,18 +1,3 @@
-/**
- * The contact form endpoint.
- *
- * It does one thing: validate an enquiry and store it. It used to also send the
- * notification email over SMTP, which meant SMTP credentials in the deployment
- * and a mail library in the bundle. That job now belongs to a Supabase Edge
- * Function triggered by the insert — see supabase/functions/notify-contact —
- * so the credentials live in Supabase and this route stays a single write.
- *
- * The write goes through the anon key under row-level security. The `anyone can
- * submit` policy in 0001 permits the insert and nothing else: no select, no
- * update, no delete. An anonymous visitor can add a row and can never read one
- * back, including their own.
- */
-
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -55,15 +40,10 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
-  // Mirrors the CHECK constraints on the table, so an over-long field is
-  // rejected here with a readable message rather than as a database error.
   if (name.length > 120 || email.length > 200 || message.length > 5000) {
     return NextResponse.json({ error: "Payload too large." }, { status: 413 });
   }
 
-  // No database on this deployment. A forked copy with an empty .env lands
-  // here, and the honest answer is an address they can write to — not a 500
-  // that reads like the visitor did something wrong.
   if (!isSupabaseConfigured) {
     return NextResponse.json(
       {
@@ -85,8 +65,6 @@ export async function POST(req: Request) {
   const ip = forwarded.split(",")[0]?.trim() || null;
   const userAgent = req.headers.get("user-agent") ?? null;
 
-  // No `.select()` — the insert policy grants insert only, so asking for the
-  // row back would make PostgREST refuse the whole statement.
   const { error: dbError } = await supabase
     .from("contact_submissions")
     .insert({

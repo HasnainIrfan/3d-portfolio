@@ -5,7 +5,6 @@ export interface ProjectPanelProps {
   index: number;
   total: number;
   onOpen: () => void;
-  /** Whether the live preview iframe should be mounted for this panel. */
   showPreview: boolean;
 }
 

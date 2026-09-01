@@ -3,7 +3,6 @@ import { type ProjectPanelProps } from "@/types/project-types";
 import { ProjectPreview } from "./project-preview";
 import { ProjectSummary } from "./project-summary";
 
-/** One full-viewport project slide, shared by the pinned and vertical layouts. */
 export const ProjectPanel: FC<ProjectPanelProps> = ({
   project,
   index,

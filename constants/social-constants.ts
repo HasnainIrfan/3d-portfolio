@@ -1,5 +1,3 @@
-/** Where to find me, and how to reach me. */
-
 import { type SocialLink } from "@/types/portfolio-types";
 
 export const MY_SOCIALS: SocialLink[] = [

@@ -33,7 +33,6 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // Tints mobile browser chrome to match the site's brand gradient.
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#030412" },
     { media: "(prefers-color-scheme: light)", color: "#5c33cc" },

@@ -4,7 +4,6 @@ import { type FC } from "react";
 import { motion } from "motion/react";
 import { revealProps } from "@/animations/scroll-animations";
 
-/** Closing card: the catch-all for work that does not fit the four services. */
 export const ServicesCtaCard: FC = () => (
   <motion.div
     {...revealProps()}

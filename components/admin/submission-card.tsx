@@ -36,8 +36,6 @@ export const SubmissionCard: FC<SubmissionCardProps> = ({ row }) => (
       {row.message}
     </p>
 
-    {/* Only for a known failure. `null` means never attempted, which is not the
-        same thing. */}
     {row.email_sent === false && (
       <p className="mt-4 rounded-lg border border-coral/25 bg-coral/[0.07] px-3 py-2 text-xs text-coral">
         Notification email was not delivered
@@ -45,8 +43,6 @@ export const SubmissionCard: FC<SubmissionCardProps> = ({ row }) => (
       </p>
     )}
 
-    {/* Collapsed: the metadata is for the rare submission that looks like spam,
-        not something to read every time. */}
     <details className="mt-4">
       <summary className="cursor-pointer list-none text-xs uppercase tracking-[0.2em] text-neutral-500 hover:text-neutral-300">
         Metadata

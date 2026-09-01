@@ -5,13 +5,11 @@ import { getAdminState } from "@/lib/admin/auth";
 import { SetupNotice } from "@/components/admin/setup-notice";
 import { LoginForm } from "./login-form";
 
-// Reads the session cookie, so it can never be prerendered or cached.
 export const dynamic = "force-dynamic";
 
 const AdminLoginPage: FC = async () => {
   const state = await getAdminState();
 
-  // Already signed in and authorised — no reason to show a login form.
   if (state.status === "admin") redirect("/admin");
 
   return (
@@ -35,8 +33,6 @@ const AdminLoginPage: FC = async () => {
           ) : state.status === "schema-missing" ? (
             <SetupNotice variant="no-schema" />
           ) : (
-            /* useSearchParams needs a Suspense boundary, or the whole route
-               opts into client-side rendering. */
             <Suspense
               fallback={
                 <div className="h-64 animate-pulse rounded-lg bg-white/5" />

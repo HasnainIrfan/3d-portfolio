@@ -6,7 +6,6 @@ import {
   NAV_OBSERVER_OPTIONS,
 } from "@/constants/navigation-constants";
 
-/** The nav href of whichever section currently owns the viewport. */
 export const useActiveSection = (): string => {
   const [active, setActive] = useState<string>(NAV_ITEMS[0].href);
 
@@ -18,8 +17,6 @@ export const useActiveSection = (): string => {
     if (!sections.length) return;
 
     const observer = new IntersectionObserver((entries) => {
-      // Most-visible wins, so overlapping sections do not fight over the
-      // highlight as one scrolls out and the next scrolls in.
       const visible = entries
         .filter((entry) => entry.isIntersecting)
         .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];

@@ -5,7 +5,6 @@ import { motion } from "motion/react";
 import { VIEWPORT_ONCE } from "@/animations/scroll-animations";
 import { type SectionHeaderProps } from "@/types/ui-types";
 
-/** The eyebrow + heading + optional scroll hint every section opens with. */
 export const SectionHeader: FC<SectionHeaderProps> = ({
   eyebrow,
   title,

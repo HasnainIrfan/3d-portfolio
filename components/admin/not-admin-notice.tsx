@@ -1,11 +1,6 @@
 import { type FC } from "react";
 import { LogoutButton } from "@/app/admin/logout-button";
 
-/**
- * A real Supabase user with no `admin_users` row. Redirecting to /admin/login
- * would bounce straight back here — they *are* signed in — so this is a dead
- * end with a way out rather than a loop.
- */
 export const NotAdminNotice: FC<{ email: string }> = ({ email }) => (
   <div className="space-y-4 text-sm">
     <h1 className="text-lg font-semibold text-white">Not an admin</h1>

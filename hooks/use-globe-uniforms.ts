@@ -10,8 +10,6 @@ import {
   THEME,
 } from "@/constants/globe-constants";
 
-/** Shader uniforms for the spike field. Created once; mutated per frame through
- *  the material ref, so writes stay outside React's render-value graph. */
 export const useSpikeUniforms = () =>
   useMemo(
     () => ({
@@ -35,7 +33,6 @@ export const useSpikeUniforms = () =>
     []
   );
 
-/** One uniform set per orbiting orb. */
 export const useOrbUniforms = () =>
   useMemo(
     () =>

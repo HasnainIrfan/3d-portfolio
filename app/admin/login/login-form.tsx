@@ -7,8 +7,6 @@ import { type FC } from "react";
 import { signIn, type LoginState } from "./actions";
 
 const SubmitButton: FC = () => {
-  // Reads the pending state of the enclosing <form>, so no state has to be
-  // threaded down from the action itself.
   const { pending } = useFormStatus();
   return (
     <button
@@ -27,8 +25,6 @@ export const LoginForm: FC = () => {
 
   return (
     <form action={formAction} className="space-y-5">
-      {/* Carried through the POST so the action can send the admin back to
-          wherever they were headed. Validated server-side — see safeRedirect. */}
       <input type="hidden" name="next" value={searchParams.get("next") ?? ""} />
 
       <div>

@@ -1,5 +1,3 @@
-/** The work section: the case studies themselves, and the showcase tuning. */
-
 import { type Transition } from "motion/react";
 import { type Project } from "@/types/portfolio-types";
 
@@ -143,19 +141,13 @@ export const MY_PROJECTS: Project[] = [
   },
 ];
 
-/** Spring for the card's pointer tilt — firm enough to track, soft enough to
- *  keep weight. */
 export const TILT_SPRING: Transition = { stiffness: 200, damping: 18 };
 
-/** Degrees of tilt at the extremes of the card. Typed as plain number tuples
- *  so `useTransform` reads them as a range rather than a pair of literals. */
 export const TILT_RANGE: { x: [number, number]; y: [number, number] } = {
   x: [10, -10],
   y: [-14, 14],
 };
 
-/** Spring for the horizontal track and its progress bar. */
 export const TRACK_SPRING: Transition = { stiffness: 60, damping: 20 };
 
-/** How many panels either side of the active one keep their iframe mounted. */
 export const PREVIEW_WINDOW = 1;

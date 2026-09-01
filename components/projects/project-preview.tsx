@@ -9,7 +9,6 @@ import { type ProjectPreviewProps } from "@/types/project-types";
 const BADGE =
   "rounded-full border border-white/15 bg-black/40 px-3 py-1 text-[10px] uppercase tracking-[0.3em] backdrop-blur-md";
 
-/** The tilting card: a live iframe of the site, with floating chrome above it. */
 export const ProjectPreview: FC<ProjectPreviewProps> = ({
   project,
   index,
@@ -62,9 +61,6 @@ export const ProjectPreview: FC<ProjectPreviewProps> = ({
               src={project.href}
               title={project.title}
               loading="lazy"
-              // Third-party pages, so they get no access to this origin and no
-              // referrer. `pointer-events: none` keeps the card's tilt working
-              // instead of the frame swallowing the pointer.
               sandbox="allow-scripts allow-same-origin"
               referrerPolicy="no-referrer"
               className="pointer-events-none absolute inset-0 select-none bg-transparent"

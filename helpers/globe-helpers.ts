@@ -8,12 +8,6 @@ import {
 } from "three";
 import { type PlaneBasis } from "@/types/globe-types";
 
-/**
- * Fibonacci-sphere placement: the golden angle spreads points far more evenly
- * over a sphere than latitude/longitude, which bunches them at the poles. Each
- * instance also carries the quaternion aiming its capsule outward, so the whole
- * surface is one instanced draw call.
- */
 export const createSpikeGeometry = (
   count: number,
   radius: number
@@ -51,7 +45,6 @@ export const createSpikeGeometry = (
     positions[i3 + 1] = posY;
     positions[i3 + 2] = z;
 
-    // Aim the capsule's +Y at the core, so its flat cut end faces outward.
     direction.set(-x, -posY, -z).normalize();
     quaternion.setFromUnitVectors(up, direction);
     quaternions[i4] = quaternion.x;
@@ -59,7 +52,6 @@ export const createSpikeGeometry = (
     quaternions[i4 + 2] = quaternion.z;
     quaternions[i4 + 3] = quaternion.w;
 
-    // Deterministic per-spike variation for the hot-colour mix.
     randoms[i] = (((Math.sin(i * 12.9898) * 43758.5453) % 1) + 1) % 1;
   }
 
@@ -80,7 +72,6 @@ export const createSpikeGeometry = (
   return geometry;
 };
 
-/** Orthonormal basis for the plane whose normal is `axis`. */
 export const planeBasis = (axis: Vector3): PlaneBasis => {
   const normal = axis.clone().normalize();
   const reference =

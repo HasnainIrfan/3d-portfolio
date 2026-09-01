@@ -7,6 +7,5 @@ export interface NavLinkProps {
 
 export interface HireMeButtonProps {
   onClick?: () => void;
-  /** Stretches the button across a mobile menu row. */
   full?: boolean;
 }

@@ -1,5 +1,3 @@
-/** Free-text skill pills, shown in the About marquee. */
-
 export const SKILL_CHIPS = [
   "JavaScript",
   "TypeScript",

@@ -9,7 +9,6 @@ import {
 } from "@/constants/portfolio-constants";
 import { ContactInfoCard } from "./contact-info-card";
 
-/** Left column: the pitch, and the three ways to reach me. */
 export const ContactDetails: FC = () => (
   <motion.div {...revealProps()} className="lg:col-span-5">
     <p className="text-eyebrow">Let&apos;s Talk</p>

@@ -1,7 +1,6 @@
 import { type FC } from "react";
 import { type ContactInfoCardProps } from "@/types/contact-types";
 
-/** One row in the contact details column. Renders as a link when `href` is set. */
 export const ContactInfoCard: FC<ContactInfoCardProps> = ({
   icon,
   label,

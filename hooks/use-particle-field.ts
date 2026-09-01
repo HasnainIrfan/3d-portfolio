@@ -24,17 +24,9 @@ export interface ParticleFieldOptions {
   color: string;
   vx: number;
   vy: number;
-  /** Toggling this rebuilds the field — used when the container resizes. */
   refresh: boolean;
 }
 
-/**
- * The whole canvas particle simulation: seeding, drawing, the cursor magnetism
- * and the animation frame loop.
- *
- * Everything runs against refs and the raw 2D context, never React state — a
- * field of 120 particles at 60fps would otherwise be 7,200 re-renders a second.
- */
 export const useParticleField = ({
   quantity,
   staticity,
@@ -110,8 +102,6 @@ export const useParticleField = ({
       const { w, h } = canvasSize.current;
       const x = pointer.current.x - rect.left - w / 2;
       const y = pointer.current.y - rect.top - h / 2;
-      // Only track while the cursor is over the canvas, so particles settle
-      // back to centre instead of straining toward a cursor that has left.
       if (x < w / 2 && x > -w / 2 && y < h / 2 && y > -h / 2) {
         mouse.current.x = x;
         mouse.current.y = y;
@@ -153,7 +143,6 @@ export const useParticleField = ({
 
         drawCircle(circle, true);
 
-        // Drifted off the canvas: recycle it rather than growing the array.
         if (
           circle.x < -circle.size ||
           circle.x > canvasSize.current.w + circle.size ||

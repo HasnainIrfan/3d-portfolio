@@ -11,10 +11,6 @@ import { usePinnedProgress } from "@/hooks/use-pinned-progress";
 import { type ProjectListProps } from "@/types/project-types";
 import { ProjectPanel } from "./project-panel";
 
-/**
- * Desktop layout: a tall track whose sticky inner panel translates a strip of
- * full-screen slides sideways as you scroll past it.
- */
 export const PinnedShowcase: FC<ProjectListProps> = ({ onOpen }) => {
   const total = MY_PROJECTS.length;
   const { trackRef, progress, activeIndex } = usePinnedProgress(total);
@@ -45,9 +41,6 @@ export const PinnedShowcase: FC<ProjectListProps> = ({ onOpen }) => {
               index={index}
               total={total}
               onOpen={() => onOpen(project)}
-              // Only the neighbours keep an iframe mounted; six live
-              // cross-origin frames is the difference between a smooth scroll
-              // and a stalled one.
               showPreview={Math.abs(index - activeIndex) <= PREVIEW_WINDOW}
             />
           ))}

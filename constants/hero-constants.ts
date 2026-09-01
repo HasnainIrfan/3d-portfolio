@@ -1,5 +1,3 @@
-/** Identity and the headline block. Change these first when forking. */
-
 import { type Stat } from "@/types/portfolio-types";
 
 export const HERO_NAME = "Hasnain Irfan";

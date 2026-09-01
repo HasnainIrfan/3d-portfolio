@@ -1,6 +1,5 @@
 import { type FC } from "react";
 
-/** The 45°-rotated arrow used on the primary call-to-action buttons. */
 export const ArrowIcon: FC<{ className?: string }> = ({
   className = "h-3.5 w-3.5",
 }) => (

@@ -5,7 +5,6 @@ import { motion } from "motion/react";
 import { formatCounter } from "@/helpers/format-helpers";
 import { type ProjectSummaryProps } from "@/types/project-types";
 
-/** Repeats as each panel scrolls in, so `once` is deliberately false here. */
 const reveal = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
   whileInView: { opacity: 1, y: 0 },
@@ -13,7 +12,6 @@ const reveal = (delay = 0) => ({
   transition: { duration: 0.6, delay },
 });
 
-/** The text column of a project panel. */
 export const ProjectSummary: FC<ProjectSummaryProps> = ({
   project,
   index,

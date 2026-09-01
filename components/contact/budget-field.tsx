@@ -18,8 +18,6 @@ export const BudgetField: FC<BudgetFieldProps> = ({ value, onChange }) => (
           <button
             key={option.value}
             type="button"
-            // Clicking the active chip clears it — budget is optional, and
-            // without this there is no way back to "prefer not to say".
             onClick={() => onChange(active ? "" : option.value)}
             aria-pressed={active}
             className={`group relative rounded-full border px-4 py-2 text-xs font-medium transition-colors ${

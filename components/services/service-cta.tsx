@@ -1,6 +1,5 @@
 import { type FC } from "react";
 
-/** The arrow link at the foot of every service card. */
 export const ServiceCta: FC = () => (
   <a href="#contact" className="group inline-flex items-center gap-4 text-white">
     <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-primary transition-transform duration-300 group-hover:scale-110">

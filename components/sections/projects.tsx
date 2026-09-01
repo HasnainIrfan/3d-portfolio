@@ -15,8 +15,6 @@ export const Projects: FC = () => {
   const mounted = useHasMounted();
   const [active, setActive] = useState<Project | null>(null);
 
-  // The pinned layout depends on a viewport measurement the server cannot make,
-  // so it only takes over once hydrated.
   const pinned = mounted && !isMobile;
 
   return (

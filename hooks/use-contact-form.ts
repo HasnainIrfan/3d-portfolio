@@ -21,7 +21,6 @@ const HIDDEN_ALERT: AlertState = {
   message: "",
 };
 
-/** Form state, validation progress and submission for the contact form. */
 export const useContactForm = () => {
   const [formData, setFormData] = useState<ContactFormData>(INITIAL_FORM_STATE);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +31,6 @@ export const useContactForm = () => {
     setFormData((previous) => ({ ...previous, [key]: value }));
   }, []);
 
-  /** 0–1 across the required fields, driving the progress bar. */
   const completion = useMemo(() => {
     const filled = REQUIRED_FIELDS.filter((key) => formData[key].trim()).length;
     return filled / REQUIRED_FIELDS.length;
@@ -67,9 +65,6 @@ export const useContactForm = () => {
         setFormData(INITIAL_FORM_STATE);
         showAlert("success", CONTACT_SUCCESS_MESSAGE);
       } catch (error) {
-        // The route hands back a usable message for the cases a visitor can act
-        // on — an unconfigured deployment, a validation failure — so it is
-        // shown rather than replaced with something generic.
         showAlert(
           "danger",
           error instanceof Error ? error.message : CONTACT_ERROR_MESSAGE

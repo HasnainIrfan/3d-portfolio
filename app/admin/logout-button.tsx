@@ -17,11 +17,6 @@ const Inner: FC = () => {
   );
 };
 
-/**
- * A real form POST rather than a fetch. Sign-out clears a cookie and redirects,
- * both of which the Server Action does on the server — so there is no response
- * to interpret on the client and no router refresh to remember.
- */
 export const LogoutButton: FC = () => (
   <form action={signOut}>
     <Inner />

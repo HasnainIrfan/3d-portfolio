@@ -5,7 +5,6 @@ import { twMerge } from "tailwind-merge";
 import { useParticleField } from "@/hooks/use-particle-field";
 import { type ParticlesProps } from "@/types/portfolio-types";
 
-/** Decorative drifting particles that lean toward the cursor. */
 export const Particles: FC<ParticlesProps> = ({
   className = "",
   quantity = 100,

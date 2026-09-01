@@ -27,9 +27,6 @@ export const HomePage: FC = () => (
   <>
     <PageLoader />
     <ThemedGlobe />
-    {/* The globe renders at z-0, behind everything here. Lifting the content
-        into its own stacking context is what keeps it there — otherwise the
-        sections, which are `relative` with no z-index, interleave with it. */}
     <div className="relative z-10 w-full">
       <Navbar />
       <Hero />

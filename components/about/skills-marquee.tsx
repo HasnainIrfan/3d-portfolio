@@ -10,7 +10,6 @@ const Chip: FC<{ skill: string }> = ({ skill }) => (
   <span className={SKILL_CHIP_CLASS}>{skill}</span>
 );
 
-/** Two counter-rotating rows of skill chips, faded out at both edges. */
 export const SkillsMarquee: FC = () => (
   <div className="mt-16">
     <motion.div

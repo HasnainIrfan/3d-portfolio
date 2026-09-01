@@ -1,7 +1,5 @@
 import { ImageResponse } from "next/og";
 
-// Apple touch icon (home-screen). iOS applies its own rounded-corner mask,
-// so we render full-bleed with safe padding — no border radius here.
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
@@ -19,7 +17,6 @@ export default function AppleIcon() {
             "linear-gradient(135deg, #5c33cc 0%, #ca2f8c 55%, #ea4884 100%)",
         }}
       >
-        {/* soft radial glow behind the monogram */}
         <div
           style={{
             position: "absolute",

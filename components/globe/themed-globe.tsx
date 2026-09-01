@@ -14,15 +14,6 @@ import { type ThemedGlobeProps } from "@/types/portfolio-types";
 import { GlobeScene } from "./globe-scene";
 import { GlobeScrim } from "./globe-scrim";
 
-/**
- * Fixed, full-viewport WebGL layer mounted once for the whole page, sitting
- * BEHIND the site at `z-0` — visible through the gaps between sections and
- * behind the glass cards, never on top of anything you are reading. The content
- * is lifted to `z-10` in `home-page.tsx` to keep it there.
- *
- * The canvas is transparent, and the wrapper is `pointer-events: none` so
- * nothing here can swallow a click.
- */
 export const ThemedGlobe: FC<ThemedGlobeProps> = ({ className }) => {
   const isMobile = useMediaQuery({ maxWidth: 853 });
   const isTablet = useMediaQuery({ maxWidth: 1280 });
@@ -34,7 +25,6 @@ export const ThemedGlobe: FC<ThemedGlobeProps> = ({ className }) => {
       ? INSTANCE_COUNT.tablet
       : INSTANCE_COUNT.desktop;
 
-  // Fully transparent clear, so only the globe paints.
   const handleCreated = useCallback((state: RootState) => {
     state.gl.setClearColor(0x000000, 0);
   }, []);

@@ -2,8 +2,6 @@ import Link from "next/link";
 import { type FC } from "react";
 import { type AdminSearchProps } from "@/types/admin-types";
 
-/** A plain GET form, so a search is a real URL you can bookmark, share or
- *  reload without re-posting anything. */
 export const AdminSearch: FC<AdminSearchProps> = ({ search }) => (
   <form method="get" action="/admin" className="mt-8 flex gap-3">
     <input

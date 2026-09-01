@@ -1,5 +1,3 @@
-/** What I offer, as shown in the services grid. */
-
 import { type Service } from "@/types/portfolio-types";
 
 export const SERVICES: Service[] = [

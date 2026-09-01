@@ -4,13 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition, type FC } from "react";
 import { deleteSubmissionAction } from "./actions";
 
-/**
- * Two-step delete: the first click arms it, the second confirms.
- *
- * Deliberately not `window.confirm` — a native dialog blocks the whole tab and
- * looks nothing like the rest of the page. Arming inline also means the
- * dangerous button is never the one sitting under a stray click.
- */
 export const DeleteButton: FC<{ id: string; name: string }> = ({ id, name }) => {
   const router = useRouter();
   const [armed, setArmed] = useState(false);
@@ -26,8 +19,6 @@ export const DeleteButton: FC<{ id: string; name: string }> = ({ id, name }) => 
         setArmed(false);
         return;
       }
-      // revalidatePath ran on the server; this pulls the fresh payload so the
-      // card disappears and the counts above it update.
       router.refresh();
     });
   };

@@ -5,13 +5,6 @@ import { motion, useInView } from "motion/react";
 import { fadeInUp } from "@/animations/scroll-animations";
 import { HERO_LOCATION, HERO_NAME } from "@/constants/hero-constants";
 
-/**
- * The biography card.
- *
- * The prose lives here rather than in the constants file because it is copy
- * *with markup* — the emphasis spans are part of how it reads, and flattening
- * it into a string array would cost more than it saved.
- */
 export const AboutBio: FC = () => {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });

@@ -3,17 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMotionValue } from "motion/react";
 
-/**
- * Drives the pinned horizontal showcase from the page's own scroll position.
- *
- * The track is `total * 100vh` tall and its inner panel is sticky, so scrolling
- * through the track translates the strip sideways. Progress is read from the
- * track's rect rather than from a scroll delta, so it is always absolute — it
- * cannot drift out of sync after a resize or a jump.
- *
- * Reads are batched into one rAF per frame: `getBoundingClientRect` in a raw
- * scroll handler forces a layout flush on every event.
- */
 export const usePinnedProgress = (total: number) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);

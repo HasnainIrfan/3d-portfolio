@@ -1,20 +1,3 @@
-/**
- * The two emails this project sends, and the only templates it has.
- *
- * 1. An acknowledgement to the person who filled in the form, so they know it
- *    arrived and roughly when to expect a reply. Sent first — it is the one a
- *    stranger is waiting on.
- * 2. The lead itself, to you, with Reply-To set to the sender so hitting reply
- *    answers them rather than yourself.
- *
- * Table layouts and inline styles throughout, because email clients are dated:
- * Outlook renders through Word's HTML engine and Gmail strips <style> blocks in
- * some contexts. Flexbox, grid and CSS variables are not available here.
- *
- * Every message is built as HTML *and* plain text. Sending both is what keeps
- * mail out of spam filters that penalise HTML-only messages.
- */
-
 export interface Submission {
   id: string;
   name: string;
@@ -26,7 +9,6 @@ export interface Submission {
   user_agent: string | null;
 }
 
-/** Every field below was typed by a stranger and is about to become HTML. */
 const escapeHtml = (value: string): string =>
   value
     .replace(/&/g, "&amp;")
@@ -35,16 +17,10 @@ const escapeHtml = (value: string): string =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
-/** Only the sender's first name, and only if it looks like one. A form field
- *  can contain anything, and "Hi ,"  reads worse than a plain greeting. */
 const firstName = (name: string): string => {
   const first = name.trim().split(/\s+/)[0] ?? "";
   return /^[\p{L}'-]{1,30}$/u.test(first) ? first : "there";
 };
-
-/* -------------------------------------------------------------------------- */
-/*  Shared shell                                                              */
-/* -------------------------------------------------------------------------- */
 
 const shell = (preheader: string, inner: string, footer: string): string =>
   `<!doctype html>
@@ -70,10 +46,6 @@ const detailRow = (label: string, value: string): string => `
     <td style="padding:10px 0;border-bottom:1px solid #282b4b;color:#8b8fa3;font-size:13px;width:110px;vertical-align:top;">${escapeHtml(label)}</td>
     <td style="padding:10px 0;border-bottom:1px solid #282b4b;color:#e9e9ee;font-size:14px;">${value}</td>
   </tr>`;
-
-/* -------------------------------------------------------------------------- */
-/*  1. Acknowledgement — to the person who wrote in                           */
-/* -------------------------------------------------------------------------- */
 
 export const buildReplySubject = (ownerName: string): string =>
   `Thanks for reaching out — ${ownerName}`;
@@ -137,10 +109,6 @@ ${
         </td></tr>`,
     `Sent because you used the contact form on ${ownerName}'s site`
   );
-
-/* -------------------------------------------------------------------------- */
-/*  2. The lead — to you                                                      */
-/* -------------------------------------------------------------------------- */
 
 export const buildAlertSubject = (s: Submission): string =>
   `New enquiry from ${s.name}${s.budget ? ` · ${s.budget}` : ""}`;

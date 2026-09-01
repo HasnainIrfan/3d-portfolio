@@ -1,7 +1,6 @@
 import { type FC } from "react";
 import { type AdminPanelProps } from "@/types/admin-types";
 
-/** The centred card the admin area uses for every non-inbox state. */
 export const AdminPanel: FC<Omit<AdminPanelProps, "title">> = ({
   children,
 }) => (

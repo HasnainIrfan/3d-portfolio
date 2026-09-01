@@ -10,7 +10,6 @@ export const INITIAL_FORM_STATE: ContactFormData = {
   message: "",
 };
 
-/** Budget is optional; the submit button unlocks on these three alone. */
 export const REQUIRED_FIELDS: ContactField[] = ["name", "email", "message"];
 
 export const BUDGET_OPTIONS = [
@@ -21,7 +20,6 @@ export const BUDGET_OPTIONS = [
   { value: "hourly", label: "Hourly" },
 ] as const;
 
-/** How long a success or error banner stays on screen, in ms. */
 export const ALERT_DURATION = 5000;
 
 export const CONTACT_SUCCESS_MESSAGE =

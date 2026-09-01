@@ -20,9 +20,6 @@ export const ContactForm: FC = () => {
   const { formData, update, completion, isLoading, alert, handleSubmit } =
     useContactForm();
 
-  // Synced in an effect rather than during render: a motion value is an
-  // external store, and writing to it mid-render is a side effect React is free
-  // to run twice.
   const completionValue = useMotionValue(completion);
   useEffect(() => completionValue.set(completion), [completion, completionValue]);
   const completionSpring = useSpring(completionValue, SPRING_SOFT);
@@ -30,7 +27,6 @@ export const ContactForm: FC = () => {
     Math.round(value * 100)
   );
 
-  // Cursor-following sheen on the card.
   const pointerX = useMotionValue(50);
   const pointerY = useMotionValue(50);
   const glow = useMotionTemplate`radial-gradient(600px circle at ${pointerX}% ${pointerY}%, rgba(234,72,132,0.15), transparent 40%)`;

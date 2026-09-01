@@ -1,6 +1,3 @@
-/** Client testimonials. The layout splits them evenly, so an even count reads
- *  best. */
-
 import { type Review } from "@/types/portfolio-types";
 
 export const REVIEWS: Review[] = [

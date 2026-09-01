@@ -9,7 +9,6 @@ import {
 } from "@/types/project-types";
 import { ProjectPanel } from "./project-panel";
 
-/** Mounts its preview only once the panel nears the viewport. */
 const LazyPanel: FC<Omit<ProjectPanelProps, "showPreview">> = (props) => {
   const [ref, inView] = useInViewOnce<HTMLDivElement>();
   return (
@@ -19,7 +18,6 @@ const LazyPanel: FC<Omit<ProjectPanelProps, "showPreview">> = (props) => {
   );
 };
 
-/** Mobile and tablet layout: the same panels, stacked. */
 export const VerticalProjects: FC<ProjectListProps> = ({ onOpen }) => (
   <div className="mt-12 space-y-20">
     {MY_PROJECTS.map((project, index) => (
