@@ -7,7 +7,7 @@ panel that captures your contact-form leads, and full SEO out of the box — sit
 and Open Graph. Build your personal website with Next.js 16, React 19, TypeScript, Three.js and
 Tailwind CSS v4.
 
-[**Live Demo**](https://hasnaindeveloper.vercel.app) · [Documentation](docs/) · [Deploy](docs/deployment.md)
+[**Live Demo**](https://www.hasnainirfan.com) · [Documentation](docs/) · [Deploy](docs/deployment.md)
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
@@ -16,7 +16,7 @@ Tailwind CSS v4.
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg)](LICENSE)
 
-[![Developer portfolio website template with 3D animated hero, built with Next.js, Three.js and Tailwind CSS](docs/images/screenshot.jpg)](https://hasnaindeveloper.vercel.app)
+[![Developer portfolio website template with 3D animated hero, built with Next.js, Three.js and Tailwind CSS](docs/images/screenshot.jpg)](https://www.hasnainirfan.com)
 
 </div>
 

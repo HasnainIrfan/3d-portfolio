@@ -2,7 +2,7 @@ import { HERO_LOCATION, HERO_NAME, HERO_ROLE } from "./hero-constants";
 import { CONTACT_EMAIL, MY_SOCIALS } from "./social-constants";
 
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://hasnaindeveloper.vercel.app"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.hasnainirfan.com"
 ).replace(/\/$/, "");
 
 export const SITE_NAME = `${HERO_NAME} — ${HERO_ROLE}`;
