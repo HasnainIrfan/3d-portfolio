@@ -14,6 +14,12 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg)](LICENSE)
 
+<br />
+
+[![3D developer portfolio built with Next.js, Three.js and React Three Fiber — animated astronaut hero section](docs/images/screenshot.jpg)](https://hasnaindeveloper.vercel.app)
+
+<sub><i>The hero section — a GLTF astronaut floating over parallax alien terrain. The shader globe takes over as you scroll.</i></sub>
+
 </div>
 
 ---
