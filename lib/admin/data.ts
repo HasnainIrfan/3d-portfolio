@@ -4,7 +4,7 @@
  * Every query here runs as the signed-in admin, through their own Supabase
  * session — there is no service-role key in this project and nothing bypasses
  * row-level security. The `admins can select / delete` policies in
- * supabase/migrations/0002_admin_auth.sql are the actual enforcement; if a
+ * supabase/migrations/0001_init.sql are the actual enforcement; if a
  * caller is not an admin these functions return nothing rather than raising,
  * because the rows are simply not visible to them.
  *

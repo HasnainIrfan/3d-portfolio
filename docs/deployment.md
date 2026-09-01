@@ -13,14 +13,9 @@ environment variables at all.
 ## 1. Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Open **SQL Editor** and run the three files in `supabase/migrations/`, in
-   order. All are idempotent.
-
-   | File | Creates |
-   | --- | --- |
-   | `0001_contact_submissions.sql` | The table, index, length limits, anonymous insert policy |
-   | `0002_admin_auth.sql` | `admin_users`, `is_admin()`, the read/delete policies |
-   | `0003_seed_admin_user.sql` | The `grant_admin` / `create_admin_user` helpers |
+2. Open **SQL Editor**, paste `supabase/migrations/0001_init.sql` and run it.
+   One file, idempotent — it creates the table, the admin allowlist, every RLS
+   policy and the `grant_admin` helpers.
 
 3. Create your admin — either in the Dashboard (Authentication → Users → Add
    user, "Auto Confirm User" ticked) followed by:
@@ -120,7 +115,7 @@ transport to worry about either.
 
 ## Production checklist
 
-- [ ] All three migrations run, in order
+- [ ] `0001_init.sql` run in the SQL editor
 - [ ] `select email from public.admin_users;` returns your address
 - [ ] Public signup disabled in Authentication → Providers → Email
 - [ ] Both `NEXT_PUBLIC_` values set in the host's dashboard, not just local `.env`

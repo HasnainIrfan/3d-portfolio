@@ -162,7 +162,7 @@ Eight environment variables became two, and both are public.
 
 ## Database
 
-Three migrations, all idempotent, in `supabase/migrations/`.
+One idempotent file, `supabase/migrations/0001_init.sql`.
 
 **`contact_submissions`** — every enquiry. RLS with a deliberate asymmetry:
 

@@ -8,7 +8,7 @@
  *
  * Anyone with a Supabase account on this project passes (1). Only rows in
  * `admin_users` pass (2), and that table can only be written from the SQL
- * editor — see supabase/migrations/0003_seed_admin_user.sql. So a stray signup
+ * editor — see supabase/migrations/0001_init.sql. So a stray signup
  * gets a session and still sees nothing.
  *
  * This replaced an ADMIN_EMAIL/ADMIN_PASSWORD pair kept in the environment.

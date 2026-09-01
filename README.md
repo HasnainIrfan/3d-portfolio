@@ -223,7 +223,7 @@ service-role key, no SMTP credentials — **this project has no server-only
 secrets at all.**
 
 The anon key is not a secret; it identifies the project, and [row-level
-security](supabase/migrations/0002_admin_auth.sql) decides what it can reach.
+security](supabase/migrations/0001_init.sql) decides what it can reach.
 Shipping it to the browser is the intended design.
 
 With neither set, the site builds and runs: `/admin` shows a setup panel and the
@@ -271,7 +271,8 @@ proxy.ts                  Next 16's renamed middleware — refreshes the Supabas
                           session and gates every /admin request
 types/portfolio-types.ts  Shared types for every constant above
 supabase/
-  migrations/             0001 table · 0002 admin model + RLS · 0003 seed admin
+  migrations/0001_init.sql  The whole schema in one file: table, RLS,
+                          admin allowlist, and the grant_admin helpers
   functions/              notify-contact — the only Edge Function: acknowledges
                           the sender, then emails you the lead
   config.toml             CLI config

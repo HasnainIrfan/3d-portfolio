@@ -5,7 +5,7 @@
  * Both variables are `NEXT_PUBLIC_` and both are safe in a browser bundle. The
  * anon key is not a secret — it is a public identifier, and row-level security
  * is what decides who may read what. There is deliberately no service-role key
- * anywhere in this project; see supabase/migrations/0002_admin_auth.sql for the
+ * anywhere in this project; see supabase/migrations/0001_init.sql for the
  * policies that replaced it.
  *
  * Nothing here throws. A fork of this repo should run, build and deploy with an

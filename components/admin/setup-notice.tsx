@@ -39,10 +39,8 @@ export const SetupNotice: FC<SetupNoticeProps> = ({
           <li>
             Run{" "}
             <code className="text-neutral-300">
-              supabase/migrations/0002_admin_auth.sql
+              supabase/migrations/0001_init.sql
             </code>{" "}
-            and{" "}
-            <code className="text-neutral-300">0003_seed_admin_user.sql</code>{" "}
             in the SQL editor.
           </li>
           <li>
@@ -73,9 +71,11 @@ export const SetupNotice: FC<SetupNoticeProps> = ({
             .
           </li>
           <li>
-            Run the files in{" "}
-            <code className="text-neutral-300">supabase/migrations/</code> in the
-            SQL editor, in order.
+            Run{" "}
+            <code className="text-neutral-300">
+              supabase/migrations/0001_init.sql
+            </code>{" "}
+            in the SQL editor.
           </li>
           <li>
             Set{" "}

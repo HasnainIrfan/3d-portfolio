@@ -114,7 +114,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error: tableMissing
-          ? "The database is connected but not set up yet. Run the files in supabase/migrations/ in the Supabase SQL editor."
+          ? "The database is connected but not set up yet. Run supabase/migrations/0001_init.sql in the Supabase SQL editor."
           : "Could not save your message. Please try again.",
       },
       { status: 500 }

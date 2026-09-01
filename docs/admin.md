@@ -51,16 +51,21 @@ editor, on purpose.
 
 ## Setup
 
-### 1. Run the migrations
+### 1. Run the SQL
 
-Supabase Dashboard → **SQL Editor**. Paste and run each file in order. All three
-are idempotent — re-running is always safe.
+Supabase Dashboard → **SQL Editor**. Paste
+`supabase/migrations/0001_init.sql` and run it. That is the whole schema — one
+file, idempotent, safe to re-run.
 
-| File | Creates |
+It creates:
+
+| | |
 | --- | --- |
-| `supabase/migrations/0001_contact_submissions.sql` | The table, its index, length limits, and the anonymous insert policy |
-| `supabase/migrations/0002_admin_auth.sql` | `admin_users`, `is_admin()`, and the read/delete policies |
-| `supabase/migrations/0003_seed_admin_user.sql` | The `grant_admin` / `revoke_admin` / `create_admin_user` helpers |
+| `contact_submissions` | The table every enquiry lands in, with its index and length limits |
+| `admin_users` | The allowlist of people who may read it |
+| `is_admin()` | The check every policy calls |
+| The policies | Anonymous insert; admin select and delete; no update for anyone |
+| `grant_admin()` and friends | How you add and remove admins |
 
 ### 2. Create your admin
 
