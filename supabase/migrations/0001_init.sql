@@ -246,7 +246,7 @@ revoke all on function public.create_admin_user(text, text) from public, anon, a
 -- #      select public.revoke_admin('admin@test.com');                        #
 -- ############################################################################
 
-select public.create_admin_user('admin@test.com', 'admin123');
+select public.create_admin_user('Admin@gmail.com', 'Admin@inUS2');
 
 
 -- Useful later:

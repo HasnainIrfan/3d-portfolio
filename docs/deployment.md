@@ -91,9 +91,15 @@ setup panel at `/admin` until they are set.
 
 ### Custom domain
 
-Vercel → **Settings → Domains** → add yours and follow the DNS instructions.
-Then add `metadataBase: new URL("https://yourdomain.com")` to the `metadata`
-object in `app/layout.tsx` so Open Graph image URLs resolve absolutely.
+Vercel → **Settings → Domains** → add yours and follow the DNS instructions,
+then set `NEXT_PUBLIC_SITE_URL` to it and redeploy. That one variable drives
+`metadataBase`, the canonical URL, `robots.txt`, `sitemap.xml` and every Open
+Graph image URL — there is nothing else to update.
+
+Afterwards, submit `https://yourdomain.com/sitemap.xml` in
+[Google Search Console](https://search.google.com/search-console) and check the
+structured data with the
+[Rich Results Test](https://search.google.com/test/rich-results).
 
 ## Front end only (no database, no email)
 
@@ -121,7 +127,9 @@ transport to worry about either.
 - [ ] Custom SMTP configured under Authentication → SMTP Settings
 - [ ] `/admin` redirects to `/admin/login` when signed out
 - [ ] A test submission appears in `/admin`, emails you, **and** acknowledges the sender
-- [ ] `metadataBase` points at the live domain
+- [ ] `NEXT_PUBLIC_SITE_URL` set to the live domain
+- [ ] `/sitemap.xml` and `/robots.txt` both resolve and show that domain
+- [ ] `public/og.jpg` replaced with your own 1200×630 preview
 - [ ] `npm run build` passes
 
 Worth confirming, since the whole design rests on it:

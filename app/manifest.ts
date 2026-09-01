@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { HERO_NAME } from "@/constants/hero-constants";
+import { SITE_DESCRIPTION, SITE_TITLE } from "@/constants/seo-constants";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Hasnain Irfan | Software Engineer",
-    short_name: "Hasnain Irfan",
-    description:
-      "Software Engineer building scalable web & mobile products with React, Next.js, React Native and Node.js.",
+    name: SITE_TITLE,
+    short_name: HERO_NAME,
+    description: SITE_DESCRIPTION,
     start_url: "/",
     display: "standalone",
     background_color: "#030412",

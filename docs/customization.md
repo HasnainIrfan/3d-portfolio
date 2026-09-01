@@ -108,17 +108,24 @@ Two places outside the theme block also hold colour and should match:
 
 ## 4. SEO and identity
 
-**`app/layout.tsx`** — `title`, `description`, `keywords[]`, `authors`, and the
-`openGraph` block. Write the description for a human; it is what shows up under
-your link in search results and on social cards.
+**`constants/seo-constants.ts`** is the single source: `SITE_TITLE`,
+`SITE_DESCRIPTION`, `SITE_TAGLINE`, `SITE_KEYWORDS` and `OG_IMAGE`. Write the
+description for a human — it is what shows under your link in search results and
+on social cards.
 
-**`app/manifest.ts`** — `name`, `short_name`, `description`.
+Everything downstream reads from it: `app/layout.tsx` (metadata, Open Graph,
+Twitter card), `app/sitemap.ts`, `app/robots.ts`, `app/manifest.ts` and the
+JSON-LD in `components/seo/json-ld.tsx`.
+
+**`public/og.jpg`** — your social preview, 1200×630. This is what appears when
+someone shares your link.
 
 **`app/icon.tsx` / `app/apple-icon.tsx`** — favicons generated at build time
 from code (no image files). Edit the JSX inside.
 
-Once deployed, add `metadataBase: new URL("https://yourdomain.com")` to the
-`metadata` object so Open Graph image URLs resolve absolutely.
+**Set `NEXT_PUBLIC_SITE_URL`** to your domain once deployed. That one variable
+drives the canonical URL, the sitemap, robots.txt and every Open Graph image
+URL.
 
 ---
 
@@ -170,7 +177,9 @@ your new section without stopping.
 - [ ] Résumé PDF replaced or removed
 - [ ] The 3D model is yours, or you kept its attribution
 - [ ] Project screenshots are yours to publish
-- [ ] `metadataBase` set to your domain
+- [ ] `NEXT_PUBLIC_SITE_URL` set to your domain
+- [ ] `public/og.jpg` replaced with your own preview
+- [ ] `/sitemap.xml` and `/robots.txt` resolve on the live site
 - [ ] Your own Supabase project, with your own admin in `admin_users`
 - [ ] `npm run build` passes
 - [ ] `LICENSE` updated to your name

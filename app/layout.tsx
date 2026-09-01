@@ -1,5 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import { Funnel_Display } from "next/font/google";
+import { JsonLd } from "@/components/seo/json-ld";
+import { HERO_NAME } from "@/constants/hero-constants";
+import {
+  OG_IMAGE,
+  OG_IMAGE_ALT,
+  SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  SITE_NAME,
+  SITE_TAGLINE,
+  SITE_TITLE,
+  SITE_URL,
+} from "@/constants/seo-constants";
 import "./globals.css";
 
 const funnelDisplay = Funnel_Display({
@@ -9,26 +21,58 @@ const funnelDisplay = Funnel_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Hasnain Irfan | Software Engineer",
-  description:
-    "Software Engineer with 3+ years of experience designing and shipping scalable web & mobile products with React, Next.js, React Native and Node.js. Available for projects.",
-  keywords: [
-    "Hasnain Irfan",
-    "Software Engineer",
-    "Next.js Developer",
-    "React Developer",
-    "React Native Developer",
-    "Full Stack Developer",
-    "Karachi",
-    "Pakistan",
-    "Hire developer",
-  ],
-  authors: [{ name: "Hasnain Irfan" }],
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: `%s | ${HERO_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  authors: [{ name: HERO_NAME, url: SITE_URL }],
+  creator: HERO_NAME,
+  publisher: HERO_NAME,
+  applicationName: SITE_NAME,
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
-    title: "Hasnain Irfan — Software Engineer",
-    description:
-      "Scalable web & mobile products built with React, Next.js and Node.js.",
     type: "website",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_TAGLINE,
+    locale: "en_US",
+    images: [
+      {
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: OG_IMAGE_ALT,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_TAGLINE,
+    images: [OG_IMAGE],
+  },
+  category: "technology",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
   },
 };
 
@@ -51,6 +95,7 @@ export default function RootLayout({
         className="min-h-full flex flex-col"
         suppressHydrationWarning
       >
+        <JsonLd />
         {children}
       </body>
     </html>
