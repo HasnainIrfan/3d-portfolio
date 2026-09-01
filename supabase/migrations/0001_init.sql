@@ -1,27 +1,13 @@
--- The only SQL file in this project. Run it once, top to bottom, in the
--- Supabase Dashboard → SQL Editor. Then run one line from the very bottom to
--- create your admin.
---
--- Everything here is idempotent: re-running it is always safe and never drops
--- your data or your admin list.
---
--- What it builds:
---   1. contact_submissions — the table every enquiry lands in
---   2. admin_users         — the allowlist of people who may read it
---   3. is_admin()          — the check every policy calls
---   4. Row-level security  — who may do what
---   5. grant_admin() and friends — how you add an admin
---
--- Design note. There is no service-role key anywhere in the application, so
--- these policies are not a second opinion on top of some privileged client —
--- they are the only thing standing between a visitor and this data.
+-- Portfolio schema. Run once, top to bottom, in Supabase → SQL Editor.
+-- Safe to re-run.
+
+-- Your admin login is created at the bottom of this file.
+-- CHANGE IT BEFORE YOU RUN THIS. See section 6.
 
 create extension if not exists "pgcrypto";
 
 
-/* ========================================================================== */
-/*  1. contact_submissions                                                    */
-/* ========================================================================== */
+-- 1. contact_submissions ------------------------------------------------------
 
 create table if not exists public.contact_submissions (
   id          uuid primary key default gen_random_uuid(),
@@ -33,29 +19,17 @@ create table if not exists public.contact_submissions (
   user_agent  text,
   ip_address  text,
   created_at  timestamptz not null default now(),
-
-  -- Written by the notify-contact Edge Function after it tries to send. null
-  -- means "never attempted", which is not the same as a failure — /admin only
-  -- warns on an explicit false.
   email_sent  boolean,
   email_error text
 );
 
--- Both columns arrived after the first version of this table, so an existing
--- database needs them added rather than created.
 alter table public.contact_submissions
   add column if not exists email_sent  boolean,
   add column if not exists email_error text;
 
--- The admin list is ordered newest-first and the dashboard counts a trailing
--- 7-day window; both read straight off this index.
 create index if not exists contact_submissions_created_at_idx
   on public.contact_submissions (created_at desc);
 
--- Length limits enforced in the database, not only in the route handler. The
--- insert policy below is open to anonymous callers, so the REST endpoint is
--- reachable directly with the public anon key — these bounds are what stop a
--- direct caller writing megabytes into the table.
 do $$
 begin
   if not exists (
@@ -75,18 +49,7 @@ end $$;
 alter table public.contact_submissions enable row level security;
 
 
-/* ========================================================================== */
-/*  2. admin_users — the allowlist                                            */
-/* ========================================================================== */
-
--- Being signed in and being an admin are two different things, and this table
--- exists to keep them apart. Supabase Auth answers "is this a real user?".
--- This answers "is this user allowed to read the enquiries?".
---
--- Without that separation, anyone who obtained an account on this project —
--- through a signup you left open, an invite meant for something else, an OAuth
--- provider you enable later — could read every visitor's name, email address
--- and IP.
+-- 2. admin_users --------------------------------------------------------------
 
 create table if not exists public.admin_users (
   user_id    uuid primary key references auth.users (id) on delete cascade,
@@ -94,12 +57,6 @@ create table if not exists public.admin_users (
   created_at timestamptz not null default now()
 );
 
-comment on table public.admin_users is
-  'Allowlist of Supabase users permitted to read contact submissions. Add rows with select public.grant_admin(''you@example.com'');';
-
--- Brings an admin_users table left over from an older revision up to the shape
--- the policies expect, instead of silently skipping the create above and
--- failing later on a missing column.
 alter table public.admin_users
   add column if not exists email      text,
   add column if not exists created_at timestamptz not null default now();
@@ -107,21 +64,10 @@ alter table public.admin_users
 alter table public.admin_users enable row level security;
 
 
-/* ========================================================================== */
-/*  3. is_admin()                                                             */
-/* ========================================================================== */
+-- 3. is_admin() ---------------------------------------------------------------
+-- security definer breaks the recursion: the policies call this, and it reads
+-- admin_users, which is itself behind those policies.
 
--- security definer matters here, and not for the usual reason.
---
--- The policies below call this function, and the function reads admin_users,
--- which itself has RLS. Evaluated as the caller that recurses: the policy asks
--- the function, the function triggers the policy, and Postgres raises
--- "infinite recursion detected in policy". Running as the definer reads the
--- table without RLS and breaks the cycle.
---
--- The pinned search_path is not optional. Without it, a caller who can create
--- objects could put their own `admin_users` earlier on the path and have this
--- function read that instead.
 create or replace function public.is_admin()
 returns boolean
 language sql
@@ -134,21 +80,12 @@ as $$
   );
 $$;
 
-comment on function public.is_admin() is
-  'True when the calling user is on the admin allowlist. Used by RLS policies.';
-
 revoke all on function public.is_admin() from public;
 grant execute on function public.is_admin() to authenticated;
 
 
-/* ========================================================================== */
-/*  4. Row-level security                                                     */
-/* ========================================================================== */
+-- 4. Row-level security -------------------------------------------------------
 
--- Anyone may submit the form. INSERT only: there is no accompanying select
--- policy for anon, so a visitor can add a row and can never read one back —
--- not even the one they just wrote. That is why the API route does not ask for
--- the inserted row with .select().
 drop policy if exists "Anyone can submit the contact form" on public.contact_submissions;
 create policy "Anyone can submit the contact form"
   on public.contact_submissions
@@ -170,14 +107,6 @@ create policy "Admins can delete submissions"
   to authenticated
   using (public.is_admin());
 
--- No update policy, for anyone. An enquiry is a record of what a visitor
--- actually wrote; nothing in this system has a reason to edit one after the
--- fact. (The Edge Function writes email_sent through the service role, which
--- bypasses RLS — that runs inside Supabase, not in the application.)
-
--- An admin may see the admin list. Everyone else sees an empty table rather
--- than an error — which is what the app relies on: it looks up its own row and
--- treats "no row" as "not an admin".
 drop policy if exists "Admins can read the admin list" on public.admin_users;
 create policy "Admins can read the admin list"
   on public.admin_users
@@ -185,19 +114,11 @@ create policy "Admins can read the admin list"
   to authenticated
   using (public.is_admin());
 
--- Deliberately no insert, update or delete policy on admin_users. Promoting an
--- admin is a thing you do in the SQL editor, on purpose, not something the
--- application can be talked into doing.
 
-
-/* ========================================================================== */
-/*  5. Managing admins                                                        */
-/* ========================================================================== */
-
--- Every function below is locked to the SQL editor: EXECUTE is revoked from
--- anon and authenticated, so none of them is reachable over the API. If
--- `authenticated` could call grant_admin, any user who signed up could promote
--- themselves and read every enquiry.
+-- 5. Managing admins ----------------------------------------------------------
+-- EXECUTE is revoked from anon and authenticated on all three, so none of them
+-- is reachable over the API. Without that, any signed-up user could promote
+-- themselves.
 
 create or replace function public.grant_admin(admin_email text)
 returns text
@@ -214,10 +135,7 @@ begin
   limit 1;
 
   if target_id is null then
-    return format(
-      'No Supabase user with the address %s. Create one first: Dashboard → Authentication → Users → Add user, or select public.create_admin_user(%L, ''a-strong-password'');',
-      admin_email, admin_email
-    );
+    return format('No Supabase user with the address %s.', admin_email);
   end if;
 
   insert into public.admin_users (user_id, email)
@@ -248,8 +166,6 @@ begin
     return format('%s was not an admin.', admin_email);
   end if;
 
-  -- The auth.users row is intentionally left alone: this removes access to the
-  -- inbox, it does not delete the person's account.
   return format('%s is no longer an admin.', admin_email);
 end;
 $$;
@@ -257,12 +173,6 @@ $$;
 revoke all on function public.revoke_admin(text) from public, anon, authenticated;
 
 
--- Writing to auth.users directly is a shortcut, and worth being honest about:
--- these columns belong to Supabase's auth service, and their shape can change
--- between releases. The supported path is Dashboard → Authentication → Users →
--- Add user, followed by grant_admin(). This function exists so the whole setup
--- can be done in one paste, and it is written defensively — it refuses rather
--- than half-creating an account if the address is already taken.
 create or replace function public.create_admin_user(
   admin_email    text,
   admin_password text
@@ -276,13 +186,11 @@ declare
   new_id uuid := gen_random_uuid();
   clean_email text := lower(trim(admin_email));
 begin
-  if admin_password is null or char_length(admin_password) < 12 then
-    return 'Choose a password of at least 12 characters. Nothing was created.';
+  if admin_password is null or char_length(admin_password) < 6 then
+    return 'Password must be at least 6 characters. Nothing was created.';
   end if;
 
   if exists (select 1 from auth.users where lower(email) = clean_email) then
-    -- Already there, so just make sure it is on the allowlist. This is what
-    -- makes the file safe to re-run.
     return public.grant_admin(clean_email);
   end if;
 
@@ -294,16 +202,14 @@ begin
     confirmation_token, recovery_token, email_change, email_change_token_new
   ) values (
     '00000000-0000-0000-0000-000000000000', new_id, 'authenticated', 'authenticated', clean_email,
-    -- bcrypt, the same algorithm the auth service uses when it hashes a
-    -- password itself, so the account is indistinguishable from a normal one.
     crypt(admin_password, gen_salt('bf')), now(),
     now(), now(),
     '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb,
     '', '', '', ''
   );
 
-  -- Password sign-in looks the identity up, not just the user. Without this row
-  -- the account exists and can never log in — a confusing failure to debug.
+  -- Password sign-in looks up the identity, not just the user. Without this row
+  -- the account exists and can never log in.
   insert into auth.identities (
     id, user_id, provider_id, identity_data, provider,
     last_sign_in_at, created_at, updated_at
@@ -317,41 +223,33 @@ begin
   values (new_id, clean_email)
   on conflict (user_id) do nothing;
 
-  return format('Created %s and made it an admin. Sign in at /admin/login.', clean_email);
+  return format('Created %s. Sign in at /admin/login.', clean_email);
 end;
 $$;
 
 revoke all on function public.create_admin_user(text, text) from public, anon, authenticated;
 
 
-/* ========================================================================== */
-/*  6. Clean-up from earlier versions of this project                         */
-/* ========================================================================== */
+-- 6. Create the admin ---------------------------------------------------------
+--
+-- ############################################################################
+-- #  CHANGE THESE TWO VALUES BEFORE RUNNING THIS FILE                        #
+-- #                                                                          #
+-- #  They are a placeholder so the file works out of the box. This           #
+-- #  repository is public, so anyone who reads it knows them. Left as they    #
+-- #  are, a stranger can sign in at /admin and read every visitor's name,     #
+-- #  email address and IP address.                                            #
+-- #                                                                          #
+-- #  Use your own address and a long, unique password. Already ran it with    #
+-- #  the placeholder? Change the password in Supabase → Authentication →      #
+-- #  Users, or run:                                                           #
+-- #      select public.revoke_admin('admin@test.com');                        #
+-- ############################################################################
 
--- The first version of this project kept admins in its own table with bcrypt
--- hashes it managed itself, and counted failed logins in another. Both were
--- replaced by Supabase Auth.
-drop function if exists public.verify_admin_credentials(text, text);
-drop table if exists public.admin_login_attempts;
+select public.create_admin_user('admin@test.com', 'admin123');
 
 
-/* ========================================================================== */
-/*  Now run ONE of these                                                      */
-/* ========================================================================== */
-
--- A. You already created the user in the Dashboard (recommended):
---
---      select public.grant_admin('you@example.com');
---
--- B. Create the account and promote it in one go. Change both values, and
---    change the password again after your first sign-in:
---
---      select public.create_admin_user('you@example.com', 'a-long-unique-password');
---
--- Check who has access at any time:
---
---      select email, created_at from public.admin_users order by created_at;
---
--- Remove someone (takes away the inbox, keeps their account):
---
---      select public.revoke_admin('them@example.com');
+-- Useful later:
+--   select email, created_at from public.admin_users order by created_at;
+--   select public.grant_admin('someone@example.com');
+--   select public.revoke_admin('someone@example.com');

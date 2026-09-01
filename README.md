@@ -125,10 +125,12 @@ nothing to leak.
 
 Sign in at **`/admin/login`** with a Supabase Auth account. Being signed in is
 only half of it — reading the inbox needs a row in `public.admin_users`, which
-can only be written from the SQL editor:
+can only be written from the SQL editor. The setup file creates the first one
+for you; change the placeholder credentials at the bottom of
+`supabase/migrations/0001_init.sql` before you run it, and add any others with:
 
 ```sql
-select public.grant_admin('you@example.com');
+select public.grant_admin('them@example.com');
 ```
 
 That separation is the point. A Supabase project can accumulate accounts you

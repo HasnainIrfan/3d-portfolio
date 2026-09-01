@@ -33,10 +33,8 @@ export const SetupNotice: FC<SetupNoticeProps> = ({
             in the SQL editor.
           </li>
           <li>
-            Then{" "}
-            <code className="text-neutral-300">
-              select public.grant_admin(&apos;you@example.com&apos;);
-            </code>
+            It creates your admin account too — change the placeholder login at
+            the bottom of that file first.
           </li>
         </ol>
       </>

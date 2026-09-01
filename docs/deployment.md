@@ -13,22 +13,19 @@ environment variables at all.
 ## 1. Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Open **SQL Editor**, paste `supabase/migrations/0001_init.sql` and run it.
-   One file, idempotent — it creates the table, the admin allowlist, every RLS
-   policy and the `grant_admin` helpers.
-
-3. Create your admin — either in the Dashboard (Authentication → Users → Add
-   user, "Auto Confirm User" ticked) followed by:
+2. Open `supabase/migrations/0001_init.sql` and **change the placeholder login**
+   in section 6 at the bottom:
 
    ```sql
-   select public.grant_admin('you@example.com');
+   select public.create_admin_user('admin@test.com', 'admin123');
    ```
 
-   or in one statement:
+   This repository is public, so those values are known to anyone who reads it.
+   Use your own address and a long, unique password.
 
-   ```sql
-   select public.create_admin_user('you@example.com', 'a-long-unique-password');
-   ```
+3. Paste the whole file into **SQL Editor** and run it. One file, idempotent —
+   it creates the table, the admin allowlist, every RLS policy, the
+   `grant_admin` helpers, and your admin account.
 
 4. Turn off public signup: Authentication → Providers → Email → disable
    **Enable sign-ups**.
@@ -116,7 +113,7 @@ transport to worry about either.
 ## Production checklist
 
 - [ ] `0001_init.sql` run in the SQL editor
-- [ ] `select email from public.admin_users;` returns your address
+- [ ] `select email from public.admin_users;` returns **your** address, not `admin@test.com`
 - [ ] Public signup disabled in Authentication → Providers → Email
 - [ ] Both `NEXT_PUBLIC_` values set in the host's dashboard, not just local `.env`
 - [ ] Edge Function deployed and its secrets set

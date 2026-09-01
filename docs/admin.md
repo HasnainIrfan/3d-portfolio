@@ -67,33 +67,38 @@ It creates:
 | The policies | Anonymous insert; admin select and delete; no update for anyone |
 | `grant_admin()` and friends | How you add and remove admins |
 
-### 2. Create your admin
+### 2. Change the placeholder login
 
-**Either** create the user in the Dashboard (Authentication → Users → Add user,
-with "Auto Confirm User" ticked), then run:
-
-```sql
-select public.grant_admin('you@example.com');
-```
-
-**Or** do both in one statement:
+The file creates your admin account for you, using the two values in **section
+6** at the bottom:
 
 ```sql
-select public.create_admin_user('you@example.com', 'a-long-unique-password');
+select public.create_admin_user('admin@test.com', 'admin123');
 ```
 
-The Dashboard route is the more durable of the two. `create_admin_user` writes
-to `auth.users` and `auth.identities` directly, and those tables belong to
-Supabase's auth service — their shape can change between releases.
+**Change both before you run it.** They are a placeholder so the file works out
+of the box, and this repository is public — anyone who reads it knows them. Left
+as they are, a stranger can sign in at `/admin` and read every visitor's name,
+email address and IP.
 
-Check who has access at any time:
+Already ran it with the placeholder? Change the password under Supabase →
+Authentication → Users, or drop the account's access with:
 
 ```sql
-select email, created_at from public.admin_users order by created_at;
+select public.revoke_admin('admin@test.com');
 ```
 
-Remove someone with `select public.revoke_admin('them@example.com');` — that
-takes away the inbox, it does not delete their account.
+Adding another admin later: create the user in the Dashboard (Authentication →
+Users → Add user, "Auto Confirm User" ticked), then
+
+```sql
+select public.grant_admin('them@example.com');
+```
+
+`create_admin_user` writes to `auth.users` and `auth.identities` directly, which
+is a shortcut worth knowing about — those tables belong to Supabase's auth
+service and their shape can change between releases. The Dashboard route is the
+more durable one for accounts you add later.
 
 ### 3. Connect the app
 
