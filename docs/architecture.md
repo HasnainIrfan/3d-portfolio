@@ -3,6 +3,43 @@
 How the pieces fit. Read this before changing anything structural — several of
 the decisions here look arbitrary until you know what they are avoiding.
 
+## Project structure
+
+Organised by *kind*, so anything you want to change has one obvious home. No
+file is over ~250 lines.
+
+Organised by *kind*, so anything you want to change has one obvious home.
+
+```
+app/
+  layout.tsx              Root layout, fonts, full SEO metadata, JSON-LD
+  sitemap.ts robots.ts    Generated from your own content
+  manifest.ts icon.tsx    PWA manifest and generated favicons
+  admin/                  Protected inbox: page, actions, login
+  api/contact/route.ts    Validate → persist one row to Supabase
+
+components/
+  sections/               Thin page sections — composition only
+  globe/ projects/ contact/ services/ about/ navbar/ admin/
+  seo/                    JSON-LD structured data
+  ui/                     Cross-section primitives
+  portfolio/              Shared pieces: astronaut, particles, timeline, …
+
+constants/                All copy, data and tuning — no strings in components
+types/                    Every shared interface, one file per domain
+hooks/                    Reusable behaviour (scroll, pointer, in-view, forms)
+helpers/                  Pure functions (math, formatting, geometry, scroll)
+animations/               Motion variants and springs
+lib/                      supabase/ · admin/ · globe/ (GLSL sources)
+
+proxy.ts                  Next 16's renamed middleware — gates /admin
+supabase/
+  migrations/0001_init.sql  The whole schema in one file
+  functions/                notify-contact Edge Function
+public/
+  models/ assets/ og.jpg
+```
+
 ## The render path
 
 ```
