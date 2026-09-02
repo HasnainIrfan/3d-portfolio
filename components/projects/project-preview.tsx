@@ -1,6 +1,7 @@
 "use client";
 
 import { type FC, type MouseEvent } from "react";
+import Image from "next/image";
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import { TILT_RANGE, TILT_SPRING } from "@/constants/projects-constants";
 import { formatCounter, padIndex } from "@/helpers/format-helpers";
@@ -56,23 +57,33 @@ export const ProjectPreview: FC<ProjectPreviewProps> = ({
             </span>
           </div>
 
-          {showPreview && (
-            <iframe
-              src={project.href}
-              title={project.title}
-              loading="lazy"
-              sandbox="allow-scripts allow-same-origin"
-              referrerPolicy="no-referrer"
-              className="pointer-events-none absolute inset-0 select-none bg-transparent"
-              style={{
-                width: "180%",
-                height: "180%",
-                transform: "scale(0.555)",
-                transformOrigin: "top left",
-                border: 0,
-                colorScheme: "normal",
-              }}
+          {project.image ? (
+            <Image
+              src={project.image}
+              alt={`${project.title} homepage`}
+              fill
+              sizes="(min-width: 1024px) 58vw, 100vw"
+              className="pointer-events-none select-none object-cover object-top"
             />
+          ) : (
+            showPreview && (
+              <iframe
+                src={project.href}
+                title={project.title}
+                loading="lazy"
+                sandbox="allow-scripts allow-same-origin"
+                referrerPolicy="no-referrer"
+                className="pointer-events-none absolute inset-0 select-none bg-transparent"
+                style={{
+                  width: "180%",
+                  height: "180%",
+                  transform: "scale(0.555)",
+                  transformOrigin: "top left",
+                  border: 0,
+                  colorScheme: "normal",
+                }}
+              />
+            )
           )}
 
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.06),transparent_45%)]" />
@@ -85,11 +96,13 @@ export const ProjectPreview: FC<ProjectPreviewProps> = ({
             <span
               className={`${BADGE} inline-flex items-center gap-2 border-white/25 bg-black/50 text-white`}
             >
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inset-0 animate-ping rounded-full bg-mint opacity-75" />
-                <span className="relative h-1.5 w-1.5 rounded-full bg-mint" />
-              </span>
-              Live Preview
+              {!project.image && (
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inset-0 animate-ping rounded-full bg-mint opacity-75" />
+                  <span className="relative h-1.5 w-1.5 rounded-full bg-mint" />
+                </span>
+              )}
+              {project.image ? "Preview" : "Live Preview"}
             </span>
             <span className={`${BADGE} text-white/70`}>
               {formatCounter(index, total)}

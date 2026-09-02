@@ -1,14 +1,14 @@
 # Make it your own
 
 Fork this repo and you can have a portfolio under your own name in about an
-hour. Steps 1–4 need no component edits at all — every string on the page comes
+hour. Steps 1 to 4 need no component edits at all, because every string on the page comes
 out of one typed constants file.
 
 Work top to bottom; each step is independent.
 
 ---
 
-## 1. Content — the `constants/` folder
+## 1. Content: the `constants/` folder
 
 Every string on the site lives here, one file per domain. No component holds
 copy. Everything is typed against `types/`, so if you miss a field, TypeScript
@@ -17,8 +17,8 @@ tells you before the page does.
 | Export | File | Shows up in |
 | --- | --- | --- |
 | `HERO_NAME` `HERO_ROLE` `HERO_LOCATION` `HERO_TAGLINE` | `hero-constants.ts` | The headline block |
-| `FLIP_WORDS` | `hero-constants.ts` | Animated word — keep them a similar length or the line jumps |
-| `STATS` | `hero-constants.ts` | About strip. Hand-written, **not** derived — update it when your project count changes |
+| `FLIP_WORDS` | `hero-constants.ts` | Animated word. Keep them a similar length or the line jumps |
+| `STATS` | `hero-constants.ts` | About strip. Hand-written, **not** derived. Update it when your project count changes |
 | `MY_PROJECTS` | `projects-constants.ts` | Projects grid + detail modal. See below |
 | `SERVICES` | `services-constants.ts` | `title`, `description`, `icon`, `bullets[]` |
 | `EXPERIENCES` | `experience-constants.ts` | `title`, `job`, `date`, `contents[]` |
@@ -42,7 +42,7 @@ tells you before the page does.
   ],
   href: "https://the-live-site.com",
   logo: "",                                // optional
-  image: "/assets/projects/your-shot.jpg",
+  image: "/projects/your-shot.webp",       // screenshot, or "" for a live embed
   accent: "from-aqua/40 to-royal/10",       // Tailwind gradient, see step 3
   tags: [
     { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
@@ -52,13 +52,19 @@ tells you before the page does.
 
 Three to eight projects is the sweet spot for the grid.
 
+`image` decides how the showcase renders the panel. Give it a screenshot in
+`public/projects/` and that image is shown. Leave it `""` and the panel embeds
+`href` in an iframe instead, which is live but pulls the whole external site
+into your page. Prefer a screenshot: export it as **WebP** around 1800px wide,
+which lands near 80&nbsp;KB against several megabytes for the live embed.
+
 ---
 
-## 2. Images — `public/assets/`
+## 2. Images: `public/assets/`
 
 | Folder | Holds | Advice |
 | --- | --- | --- |
-| `projects/` | Project screenshots | Roughly 16:9. Export as **WebP** — the originals here are heavy JPG/PNG |
+| `projects/` | Project screenshots | Roughly 16:9. Export as **WebP**. The originals here are heavy JPG/PNG |
 | `logos/` | Tech logos for the project tags | SVG |
 | `socials/` | Social icons | SVG, monochrome so they inherit colour |
 | *(root)* | `sky.jpg`, `mountain-1..3.png`, `planets.png` | The parallax background plates |
@@ -71,7 +77,7 @@ and, if you delete it, the link that points at it.
 
 ---
 
-## 3. Colours — `app/globals.css`
+## 3. Colours: `app/globals.css`
 
 Tailwind v4 is configured CSS-first. There is no `tailwind.config.js`; the
 palette is an `@theme` block at the top of `app/globals.css`:
@@ -85,7 +91,7 @@ palette is an `@theme` block at the top of `app/globals.css`:
   --color-storm: #282b4b;     /* card borders, dividers */
   --color-aqua: #33c2cc;      /* accent 1 */
   --color-mint: #57db96;
-  --color-royal: #5c33cc;     /* accent 2 — the brand purple */
+  --color-royal: #5c33cc;     /* accent 2, the brand purple */
   --color-lavender: #7a57db;
   --color-fuchsia: #ca2f8c;
   --color-orange: #cc6033;
@@ -94,7 +100,7 @@ palette is an `@theme` block at the top of `app/globals.css`:
 }
 ```
 
-Every token becomes a utility — `--color-royal` gives you `bg-royal`,
+Every token becomes a utility: `--color-royal` gives you `bg-royal`,
 `text-royal`, `from-royal/40`. Change a value here and the site follows,
 including project card gradients (`accent`) and the shader globe, which reads
 the same palette.
@@ -110,17 +116,17 @@ Two places outside the theme block also hold colour and should match:
 
 **`constants/seo-constants.ts`** is the single source: `SITE_TITLE`,
 `SITE_DESCRIPTION`, `SITE_TAGLINE`, `SITE_KEYWORDS` and `OG_IMAGE`. Write the
-description for a human — it is what shows under your link in search results and
+description for a human. It is what shows under your link in search results and
 on social cards.
 
 Everything downstream reads from it: `app/layout.tsx` (metadata, Open Graph,
 Twitter card), `app/sitemap.ts`, `app/robots.ts`, `app/manifest.ts` and the
 JSON-LD in `components/seo/json-ld.tsx`.
 
-**`public/og.jpg`** — your social preview, 1200×630. This is what appears when
+**`public/og.jpg`:** your social preview, 1200×630. This is what appears when
 someone shares your link.
 
-**`app/icon.tsx` / `app/apple-icon.tsx`** — favicons generated at build time
+**`app/icon.tsx` / `app/apple-icon.tsx`:** favicons generated at build time
 from code (no image files). Edit the JSX inside.
 
 **Set `NEXT_PUBLIC_SITE_URL`** to your domain once deployed. That one variable
@@ -138,7 +144,7 @@ yours.
    [Draco-compressed](https://github.com/google/draco).
 2. Update the path in `components/portfolio/astronaut.tsx` (`useGLTF("/models/…")`).
 3. The first embedded animation clip auto-plays. A model with no clips renders
-   fine — it just sits still.
+   fine, it just sits still.
 4. Adjust framing in `components/sections/hero.tsx`: the `scale` and `position`
    props, which have separate mobile values (below 853px).
 5. Nudge the camera in the `<Canvas camera={{ position: [0, 1, 3] }}>` prop if
@@ -152,7 +158,7 @@ Free, license-checked models: [Sketchfab](https://sketchfab.com/features/free-3d
 
 ## 6. Trimming what you don't need
 
-**Drop the contact backend.** You do not have to delete anything — leave the
+**Drop the contact backend.** You do not have to delete anything. Leave the
 two Supabase variables unset and the site runs with the form pointing visitors
 at your email address and `/admin` showing a setup panel. To remove the code
 entirely: delete `app/api/contact/`, `app/admin/`, `lib/admin/`,
@@ -165,7 +171,7 @@ contact form at a `mailto:` link.
 `use-globe-*` hooks. Nothing else depends on them.
 
 **Add a section:** create it in `components/sections/`, add it to the list in
-`home-page.tsx`, and — if the shader globe is still in play — add a matching
+`home-page.tsx`, and (if the shader globe is still in play) add a matching
 keyframe to `useGlobePath` in `themed-globe.tsx`, or the globe will slide past
 your new section without stopping.
 

@@ -7,7 +7,7 @@ export const MY_PROJECTS: Project[] = [
     title: "Inverex Global",
     category: "Solar Energy · Pakistan",
     description:
-      "Marketing & product site for Inverex — renewable, scalable solar energy for homes and businesses worldwide.",
+      "Marketing & product site for Inverex, a renewable and scalable solar energy provider for homes and businesses worldwide.",
     subDescription: [
       "Designed and shipped a fast, SEO-friendly marketing site with crisp motion polish.",
       "Built reusable section components for products, services and customer stories.",
@@ -16,7 +16,7 @@ export const MY_PROJECTS: Project[] = [
     ],
     href: "https://www.inverexglobal.com/",
     logo: "",
-    image: "/assets/projects/elearning.jpg",
+    image: "/projects/inverex.webp",
     accent: "from-aqua/40 to-royal/10",
     tags: [
       { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
@@ -30,7 +30,7 @@ export const MY_PROJECTS: Project[] = [
     title: "Getweys",
     category: "Digital Product Agency",
     description:
-      "AI-first product agency shipping web platforms, mobile apps and growth systems — 1,000+ projects since 2020 across Austin, Karachi and Auckland.",
+      "AI-first product agency shipping web platforms, mobile apps and growth systems. 1,000+ projects since 2020 across Austin, Karachi and Auckland.",
     subDescription: [
       "Built the agency site around a service catalogue spanning web, mobile, design and marketing.",
       "Structured case-study and sector sections covering fintech, healthcare, energy and government work.",
@@ -39,7 +39,7 @@ export const MY_PROJECTS: Project[] = [
     ],
     href: "https://getweys.com/",
     logo: "",
-    image: "/assets/projects/wordpress-theme.jpg",
+    image: "/projects/getweys.webp",
     accent: "from-royal/40 to-lavender/10",
     tags: [
       { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
@@ -62,7 +62,7 @@ export const MY_PROJECTS: Project[] = [
     ],
     href: "https://promptstore.io/",
     logo: "",
-    image: "/assets/projects/game-engine.jpg",
+    image: "",
     accent: "from-fuchsia/40 to-royal/10",
     tags: [
       { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
@@ -76,16 +76,16 @@ export const MY_PROJECTS: Project[] = [
     title: "ClipSave",
     category: "Media Tools",
     description:
-      "Browser-based video downloader supporting nine platforms in SD, HD and FHD — no account, no caps, nothing stored.",
+      "Browser-based video downloader supporting nine platforms in SD, HD and FHD. No account, no caps, nothing stored.",
     subDescription: [
       "Built a single-input flow that resolves and returns downloads in seconds.",
       "Supported nine sources including YouTube, Instagram, TikTok and Vimeo across quality tiers.",
-      "Shipped companion utilities — URL shortener, subtitle downloader and thumbnail extractor.",
+      "Shipped companion utilities: URL shortener, subtitle downloader and thumbnail extractor.",
       "Designed for zero-retention: no download history and no activity tracking.",
     ],
     href: "https://clipsaves.com/",
     logo: "",
-    image: "/assets/projects/wordpress-theme.jpg",
+    image: "",
     accent: "from-sand/40 to-coral/10",
     tags: [
       { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
@@ -107,7 +107,7 @@ export const MY_PROJECTS: Project[] = [
     ],
     href: "https://fastdigitaltechnology.com/",
     logo: "",
-    image: "/assets/projects/auth-system.jpg",
+    image: "",
     accent: "from-aqua/40 to-royal/10",
     tags: [
       { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
@@ -130,7 +130,7 @@ export const MY_PROJECTS: Project[] = [
     ],
     href: "https://online-flipbook.vercel.app/",
     logo: "",
-    image: "/assets/projects/blazor-app.jpg",
+    image: "",
     accent: "from-lavender/40 to-sand/10",
     tags: [
       { id: 1, name: "Next.js", path: "/assets/logos/react.svg" },
