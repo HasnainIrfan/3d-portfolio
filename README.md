@@ -70,11 +70,12 @@ builds, deploys and runs with an empty `.env`.
 
 ## Environment variables
 
-Three, all optional:
+Four, all optional:
 
 | Variable | Purpose |
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | Your domain. Drives the sitemap, canonical and Open Graph URLs. |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | Google Search Console token. Renders the verification meta tag. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
 

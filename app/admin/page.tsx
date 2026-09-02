@@ -1,3 +1,4 @@
+import { type Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AdminPagination } from "@/components/admin/admin-pagination";
 import { AdminPanel } from "@/components/admin/admin-panel";
@@ -7,12 +8,32 @@ import { SetupNotice } from "@/components/admin/setup-notice";
 import { StatCard } from "@/components/admin/stat-card";
 import { SubmissionCard } from "@/components/admin/submission-card";
 import { formatDate } from "@/helpers/format-helpers";
+import { HERO_NAME } from "@/constants/hero-constants";
 import { getAdminState } from "@/lib/admin/auth";
 import { PAGE_SIZE, getSubmissionStats, listSubmissions } from "@/lib/admin/data";
 import { type AdminPageProps } from "@/types/admin-types";
+import {
+  ADMIN_DESCRIPTION,
+  ADMIN_TITLE,
+} from "@/constants/seo-constants";
 import { LogoutButton } from "./logout-button";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: ADMIN_TITLE,
+  description: ADMIN_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    title: `${ADMIN_TITLE} · ${HERO_NAME}`,
+    description: ADMIN_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary",
+    title: `${ADMIN_TITLE} · ${HERO_NAME}`,
+    description: ADMIN_DESCRIPTION,
+  },
+};
 
 const AdminPage = async ({ searchParams }: AdminPageProps) => {
   const state = await getAdminState();

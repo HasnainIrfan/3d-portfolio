@@ -1,11 +1,31 @@
+import { type Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense, type FC } from "react";
 import { HERO_NAME } from "@/constants/portfolio-constants";
 import { getAdminState } from "@/lib/admin/auth";
 import { SetupNotice } from "@/components/admin/setup-notice";
+import {
+  ADMIN_LOGIN_DESCRIPTION,
+  ADMIN_LOGIN_TITLE,
+} from "@/constants/seo-constants";
 import { LoginForm } from "./login-form";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: ADMIN_LOGIN_TITLE,
+  description: ADMIN_LOGIN_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    title: `${ADMIN_LOGIN_TITLE} · ${HERO_NAME}`,
+    description: ADMIN_LOGIN_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary",
+    title: `${ADMIN_LOGIN_TITLE} · ${HERO_NAME}`,
+    description: ADMIN_LOGIN_DESCRIPTION,
+  },
+};
 
 const AdminLoginPage: FC = async () => {
   const state = await getAdminState();
