@@ -28,9 +28,9 @@ Two questions, kept deliberately separate:
 | Are you allowed to read the enquiries? | A row in `public.admin_users` |
 
 Conflating them is the mistake this design exists to avoid. If "signed in"
-implied "admin", then anyone who ever obtained an account on the project — a
+implied "admin", then anyone who ever obtained an account on the project (a
 signup you left open, an invite meant for something else, an OAuth provider you
-enable next year — could read every visitor's name, email address and IP.
+enable next year) could read every visitor's name, email address and IP.
 
 `admin_users` has no insert, update or delete policy. **Nothing the application
 can be tricked into doing will add an admin.** Promotion happens in the SQL
@@ -38,11 +38,11 @@ editor, on purpose.
 
 ### Enforced in three places
 
-1. **`proxy.ts`** — bounces requests with no session before a page renders, and
+1. **`proxy.ts`:** bounces requests with no session before a page renders, and
    refreshes the Supabase token on the way through.
-2. **The page and every Server Action** — `getAdminState()` re-checks, because
+2. **The page and every Server Action:** `getAdminState()` re-checks, because
    Server Actions are reachable by direct POST regardless of what the proxy did.
-3. **Row-level security** — the `admins can select / delete` policies. Since
+3. **Row-level security:** the `admins can select / delete` policies. Since
    nothing here uses a service-role key, this is not a second opinion on top of
    a privileged client; it is the actual enforcement. A bypassed UI check
    returns zero rows.
@@ -54,7 +54,7 @@ editor, on purpose.
 ### 1. Run the SQL
 
 Supabase Dashboard → **SQL Editor**. Paste
-`supabase/migrations/0001_init.sql` and run it. That is the whole schema — one
+`supabase/migrations/0001_init.sql` and run it. That is the whole schema: one
 file, idempotent, safe to re-run.
 
 It creates:
@@ -77,7 +77,7 @@ select public.create_admin_user('admin@test.com', 'admin123');
 ```
 
 **Change both before you run it.** They are a placeholder so the file works out
-of the box, and this repository is public — anyone who reads it knows them. Left
+of the box, and this repository is public, so anyone who reads it knows them. Left
 as they are, a stranger can sign in at `/admin` and read every visitor's name,
 email address and IP.
 
@@ -96,7 +96,7 @@ select public.grant_admin('them@example.com');
 ```
 
 `create_admin_user` writes to `auth.users` and `auth.identities` directly, which
-is a shortcut worth knowing about — those tables belong to Supabase's auth
+is a shortcut worth knowing about, because those tables belong to Supabase's auth
 service and their shape can change between releases. The Dashboard route is the
 more durable one for accounts you add later.
 
@@ -153,7 +153,7 @@ supabase secrets set \
   NOTIFY_WEBHOOK_SECRET="$(openssl rand -hex 32)"
 ```
 
-Keep that last value — the webhook has to send it back.
+Keep that last value, because the webhook has to send it back.
 
 ### Wire up the webhook
 
@@ -174,13 +174,13 @@ rather than silently pretending to be secure.
 
 ### What gets sent
 
-Two emails per enquiry, both from `supabase/functions/notify-contact/email-template.ts`
-— the only email templates in this project:
+Two emails per enquiry, both from `supabase/functions/notify-contact/email-template.ts`,
+the only email templates in this project:
 
 | To | What it says |
 | --- | --- |
 | **The visitor** | A short acknowledgement: their message arrived, you read them yourself, expect a reply within a business day. Includes a copy of what they wrote. |
-| **You** | The lead — name, email, budget, message, timestamp — with `Reply-To` set to the visitor, so replying answers them. |
+| **You** | The lead (name, email, budget, message, timestamp) with `Reply-To` set to the visitor, so replying answers them. |
 
 The acknowledgement is sent first, and its failure is caught separately. A typo
 in the visitor's address must not stop the lead reaching you.
@@ -195,7 +195,7 @@ configure under Authentication → **SMTP Settings**. The built-in sender is
 rate-limited and not meant for production, so add your own there too.
 
 Those emails use Supabase's default styling. This project ships no templates for
-them — with one admin who rarely resets a password, custom branding on a
+them. With one admin who rarely resets a password, custom branding on a
 password-reset email is not worth the five files it costs. Restyle them in the
 Dashboard if you ever want to.
 
@@ -214,7 +214,7 @@ template above. There is no password in any config file to look up any more.
 
 **Locked out by rate limiting.** Supabase enforces sign-in limits at the auth
 server. Wait a few minutes. (The previous version counted failures in memory,
-which on serverless meant every instance counted separately — one of several
+which on serverless meant every instance counted separately, one of several
 reasons this moved to Supabase Auth.)
 
 **A lead never emailed.** Check `/admin` first. The row is written by the app and
@@ -232,6 +232,6 @@ with a hand-rolled HMAC session cookie and an in-memory login throttle.
 
 Both worked. Supabase Auth brings password hashing, refresh-token rotation,
 shared rate limiting and password reset that a portfolio has no business
-implementing itself — and it removed four secrets (`ADMIN_EMAIL`,
+implementing itself, and it removed four secrets (`ADMIN_EMAIL`,
 `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`) plus the
 four SMTP variables from the deployment.

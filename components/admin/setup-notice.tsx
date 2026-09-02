@@ -21,7 +21,7 @@ export const SetupNotice: FC<SetupNoticeProps> = ({
       <>
         <p className="text-neutral-400">
           The Supabase project is connected, but it has no{" "}
-          <code className="text-neutral-300">admin_users</code> table — so there
+          <code className="text-neutral-300">admin_users</code> table, so there
           is no way to say who is allowed in here.
         </p>
         <ol className="list-decimal space-y-2 pl-5 text-neutral-400 marker:text-neutral-600">
@@ -33,7 +33,7 @@ export const SetupNotice: FC<SetupNoticeProps> = ({
             in the SQL editor.
           </li>
           <li>
-            It creates your admin account too — change the placeholder login at
+            It creates your admin account too. Change the placeholder login at
             the bottom of that file first.
           </li>
         </ol>
@@ -42,7 +42,7 @@ export const SetupNotice: FC<SetupNoticeProps> = ({
       <>
         <p className="text-neutral-400">
           The contact form and this inbox need a Supabase project. The rest of
-          the site runs fine without one — this page is the only thing waiting.
+          the site runs fine without one. This page is the only thing waiting.
         </p>
         <ol className="list-decimal space-y-2 pl-5 text-neutral-400 marker:text-neutral-600">
           <li>

@@ -18,7 +18,7 @@ export const ContactDetails: FC = () => (
     </h2>
     <p className="mt-4 leading-relaxed text-neutral-400">
       Whether you&apos;re launching something new, scaling what you have, or
-      rescuing a stuck project — drop me a line and I&apos;ll get back within 24
+      rescuing a stuck project, drop me a line and I&apos;ll get back within 24
       hours.
     </p>
 

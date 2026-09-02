@@ -41,7 +41,7 @@ export const HeroText: FC = () => {
           animate="visible"
           transition={{ delay: 0.9, duration: 0.6 }}
         >
-          Hi, I&apos;m {HERO_NAME.split(" ")[0]} —
+          Hi, I&apos;m {HERO_NAME}
         </motion.h1>
 
         <motion.p

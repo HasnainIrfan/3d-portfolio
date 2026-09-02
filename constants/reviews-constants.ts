@@ -4,7 +4,7 @@ export const REVIEWS: Review[] = [
   {
     name: "Daniel Cole",
     role: "CTO · Arootah",
-    body: "He doesn't just close tickets — he improves the architecture as he goes. Our investment dashboards are faster and far easier to maintain since he joined.",
+    body: "He doesn't just close tickets; he improves the architecture as he goes. Our investment dashboards are faster and far easier to maintain since he joined.",
     accent: "from-royal to-lavender",
   },
   {
@@ -22,7 +22,7 @@ export const REVIEWS: Review[] = [
   {
     name: "Priya Nair",
     role: "Tech Lead",
-    body: "We migrated a legacy stack to Next.js + Node with Hasnain leading the effort — fewer bugs, faster pages, and a much happier engineering team.",
+    body: "We migrated a legacy stack to Next.js + Node with Hasnain leading the effort. Fewer bugs, faster pages, and a much happier engineering team.",
     accent: "from-fuchsia to-royal",
   },
   {

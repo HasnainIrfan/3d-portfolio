@@ -81,7 +81,7 @@ const AdminPage = async ({ searchParams }: AdminPageProps) => {
         <StatCard label="Last 7 days" value={String(stats.last7Days)} />
         <StatCard
           label="Most recent"
-          value={stats.latest ? formatDate(stats.latest) : "—"}
+          value={stats.latest ? formatDate(stats.latest) : "N/A"}
         />
       </section>
 
@@ -92,7 +92,7 @@ const AdminPage = async ({ searchParams }: AdminPageProps) => {
           ? search
             ? `No submissions match “${search}”.`
             : "No submissions yet."
-          : `Showing ${firstOnPage}–${lastOnPage} of ${result.total}`}
+          : `Showing ${firstOnPage} to ${lastOnPage} of ${result.total}`}
       </p>
 
       <section className="mt-4 space-y-4">

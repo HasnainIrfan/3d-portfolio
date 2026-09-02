@@ -14,7 +14,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-GB", {
 
 export const formatDateTime = (iso: string): string => {
   const parsed = new Date(iso);
-  return Number.isNaN(parsed.getTime()) ? "—" : dateFormatter.format(parsed);
+  return Number.isNaN(parsed.getTime()) ? "N/A" : dateFormatter.format(parsed);
 };
 
 export const formatDate = (iso: string): string =>

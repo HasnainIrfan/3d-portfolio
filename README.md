@@ -1,9 +1,9 @@
 <div align="center">
 
-# Portfolio Website Template — Next.js, 3D Hero, Admin Panel & SEO
+# Portfolio Website Template: Next.js, 3D Hero, Admin Panel & SEO
 
 **A free, production-ready developer portfolio template.** 3D animated hero, a built-in admin
-panel that captures your contact-form leads, and full SEO out of the box — sitemap, structured data
+panel that captures your contact-form leads, and full SEO out of the box: sitemap, structured data
 and Open Graph. Build your personal website with Next.js 16, React 19, TypeScript, Three.js and
 Tailwind CSS v4.
 
@@ -28,27 +28,27 @@ makes sure people can find you.
 | | |
 | --- | --- |
 | **3D portfolio** | Animated GLTF hero, a GPU shader globe that travels with your scroll, a pinned horizontal case-study showcase, and scroll-driven reveals throughout |
-| **Admin panel** | Enquiries save to *your* Supabase database and appear in a private inbox at `/admin` — search, paginate, delete. No form-service fee, no one else holding your leads |
-| **SEO ready** | `sitemap.xml`, `robots.txt`, canonical URLs, Open Graph, Twitter cards and JSON-LD structured data — all generated from your own content |
+| **Admin panel** | Enquiries save to *your* Supabase database and appear in a private inbox at `/admin` with search, pagination and delete. No form-service fee, no one else holding your leads |
+| **SEO ready** | `sitemap.xml`, `robots.txt`, canonical URLs, Open Graph, Twitter cards and JSON-LD structured data, all generated from your own content |
 
 Every string, project and testimonial lives in `constants/`, one typed file per domain. Fork it,
-edit that folder, and it is your portfolio — no component changes needed.
+edit that folder, and it is your portfolio, with no component changes needed.
 
 ## Features
 
-**Design** — 3D animated hero · shader globe · pinned case-study showcase · sticky service cards ·
+**Design:** 3D animated hero · shader globe · pinned case-study showcase · sticky service cards ·
 experience timeline · skills marquee · particle field · parallax background · responsive from 320px ·
 respects `prefers-reduced-motion`
 
-**Admin & leads** — contact form → your database · private inbox with search and pagination ·
+**Admin & leads:** contact form → your database · private inbox with search and pagination ·
 Supabase Auth + an `admin_users` allowlist · an acknowledgement email to the visitor and the lead to
 you · **zero secrets in the repo**
 
-**SEO** — sitemap · robots · canonical · Open Graph + Twitter cards · JSON-LD (`Person`, `WebSite`,
+**SEO:** sitemap · robots · canonical · Open Graph + Twitter cards · JSON-LD (`Person`, `WebSite`,
 `ProfilePage`, `ProfessionalService`) · Web App Manifest · generated favicons · self-hosted fonts ·
 `/admin` excluded from indexing
 
-**Code** — TypeScript strict · 0 lint errors · no file over 250 lines · organised by kind
+**Code:** TypeScript strict · 0 lint errors · no file over 250 lines · organised by kind
 (`constants/` `types/` `hooks/` `helpers/` `animations/`) · runs with an empty `.env`
 
 ## Tech stack
@@ -65,7 +65,7 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:3000>. Requires Node 20.9+. **No environment variables needed** — the site
+Open <http://localhost:3000>. Requires Node 20.9+. **No environment variables needed.** The site
 builds, deploys and runs with an empty `.env`.
 
 ## Environment variables
@@ -78,22 +78,22 @@ Three, all optional:
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
 
-There are **no server-only secrets** — no admin password, no session key, no service-role key, no
+There are **no server-only secrets**: no admin password, no session key, no service-role key, no
 SMTP credentials. Row-level security does the enforcing, and SMTP lives in Supabase.
 
 ## Make it yours
 
-1. **Content** — edit `constants/` (hero, projects, services, experience, reviews, skills, socials)
-2. **Images** — `public/assets/`, and replace `public/og.jpg` with your own 1200×630 preview
-3. **Colours** — the `@theme` block at the top of `app/globals.css`
-4. **SEO** — `constants/seo-constants.ts`, then set `NEXT_PUBLIC_SITE_URL`
-5. **3D model** — drop a `.glb` in `public/models/` and update `components/portfolio/astronaut.tsx`
+1. **Content:** edit `constants/` (hero, projects, services, experience, reviews, skills, socials)
+2. **Images:** `public/assets/`, and replace `public/og.jpg` with your own 1200×630 preview
+3. **Colours:** the `@theme` block at the top of `app/globals.css`
+4. **SEO:** `constants/seo-constants.ts`, then set `NEXT_PUBLIC_SITE_URL`
+5. **3D model:** drop a `.glb` in `public/models/` and update `components/portfolio/astronaut.tsx`
 
 Full walkthrough: [`docs/customization.md`](docs/customization.md)
 
 ## Deployment
 
-Import the repo on Vercel and ship — nothing to configure. Add the Supabase values when you want the
+Import the repo on Vercel and ship. There is nothing to configure. Add the Supabase values when you want the
 contact form and admin panel. Setup for the database, admin account and lead emails:
 [`docs/deployment.md`](docs/deployment.md).
 
@@ -109,10 +109,10 @@ contact form and admin panel. Setup for the database, admin account and lead ema
 
 ## Credits & licensing
 
-Code is [MIT](LICENSE). The content and assets are **not** — replace them before deploying:
+Code is [MIT](LICENSE). The content and assets are **not**. Replace them before deploying:
 
 - Personal content (name, biography, project write-ups, testimonials, résumé) belongs to Hasnain Irfan
-- `public/models/*.glb` is third-party fan art from Sketchfab — **check its licence and keep the attribution**
+- `public/models/*.glb` is third-party fan art from Sketchfab, so **check its licence and keep the attribution**
 - Project screenshots and client logos belong to their owners
 
 3D helpers by [pmndrs](https://github.com/pmndrs), animation by [Motion](https://motion.dev).

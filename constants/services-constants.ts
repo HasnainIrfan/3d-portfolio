@@ -5,7 +5,7 @@ export const SERVICES: Service[] = [
     id: 1,
     title: "Web Applications",
     description:
-      "Production-grade Next.js & React apps — fast, accessible, SEO-friendly, and built to scale.",
+      "Production-grade Next.js & React apps that are fast, accessible, SEO-friendly and built to scale.",
     icon: "/assets/logos/react.svg",
     bullets: [
       "Landing pages & marketing sites",

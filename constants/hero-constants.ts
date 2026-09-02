@@ -7,7 +7,7 @@ export const HERO_ROLE = "Senior Software Engineer";
 export const HERO_LOCATION = "Karachi, Pakistan";
 
 export const HERO_TAGLINE =
-  "I architect scalable web & mobile products with React, Next.js and Node.js — turning complex ideas into shipped, revenue-ready software.";
+  "I architect scalable web & mobile products with React, Next.js and Node.js, turning complex ideas into shipped, revenue-ready software.";
 
 export const FLIP_WORDS = ["Scalable", "Modern", "Reliable"];
 

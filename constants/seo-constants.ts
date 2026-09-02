@@ -5,7 +5,7 @@ export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.hasnainirfan.com"
 ).replace(/\/$/, "");
 
-export const SITE_NAME = `${HERO_NAME} — ${HERO_ROLE}`;
+export const SITE_NAME = `${HERO_NAME} | ${HERO_ROLE}`;
 
 export const SITE_TITLE = `${HERO_NAME} | ${HERO_ROLE}`;
 
@@ -16,7 +16,7 @@ export const SITE_TAGLINE =
   "Scalable web & mobile products built with React, Next.js and Node.js.";
 
 export const OG_IMAGE = "/og.jpg";
-export const OG_IMAGE_ALT = `${HERO_NAME} — ${HERO_ROLE} portfolio`;
+export const OG_IMAGE_ALT = `${HERO_NAME}, ${HERO_ROLE} portfolio`;
 
 export const SITE_KEYWORDS = [
   HERO_NAME,

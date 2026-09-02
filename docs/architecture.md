@@ -1,6 +1,6 @@
 # Architecture
 
-How the pieces fit. Read this before changing anything structural — several of
+How the pieces fit. Read this before changing anything structural, because several of
 the decisions here look arbitrary until you know what they are avoiding.
 
 ## Project structure
@@ -19,20 +19,20 @@ app/
   api/contact/route.ts    Validate → persist one row to Supabase
 
 components/
-  sections/               Thin page sections — composition only
+  sections/               Thin page sections, composition only
   globe/ projects/ contact/ services/ about/ navbar/ admin/
   seo/                    JSON-LD structured data
   ui/                     Cross-section primitives
   portfolio/              Shared pieces: astronaut, particles, timeline, …
 
-constants/                All copy, data and tuning — no strings in components
+constants/                All copy, data and tuning, no strings in components
 types/                    Every shared interface, one file per domain
 hooks/                    Reusable behaviour (scroll, pointer, in-view, forms)
 helpers/                  Pure functions (math, formatting, geometry, scroll)
 animations/               Motion variants and springs
 lib/                      supabase/ · admin/ · globe/ (GLSL sources)
 
-proxy.ts                  Next 16's renamed middleware — gates /admin
+proxy.ts                  Next 16's renamed middleware, gates /admin
 supabase/
   migrations/0001_init.sql  The whole schema in one file
   functions/                notify-contact Edge Function
@@ -52,7 +52,7 @@ app/page.tsx  →  <HomePage />  (client)
 ```
 
 `Hero` and `ThemedGlobe` are pulled in with `dynamic(..., { ssr: false })`.
-Both mount a `<Canvas>`, and WebGL has no server equivalent — importing them
+Both mount a `<Canvas>`, and WebGL has no server equivalent, so importing them
 statically would break the build's server pass and ship their Three.js chunk in
 the initial bundle either way.
 
@@ -68,12 +68,12 @@ context is what pins the globe behind it.
 
 A GLB loaded with `useGLTF`, whose first embedded animation clip is played on
 mount via `useAnimations`. Entry is a `motion` spring on `position.y` (from `5`
-down to `-1`) applied inside `useFrame` — physics-driven rather than a fixed
+down to `-1`) applied inside `useFrame`, physics-driven rather than a fixed
 `transition`, so it settles naturally regardless of how long the model took to
 download.
 
 The camera follows the pointer through a `Rig` component that calls
-`easing.damp3` from `maath` each frame — damping, not lerp, so the motion is
+`easing.damp3` from `maath` each frame: damping, not lerp, so the motion is
 frame-rate independent.
 
 Below 853px (`useMediaQuery`) the model scales to `0.23` and drops to
@@ -82,7 +82,7 @@ desktop framing and letting it crop.
 
 ### The shader globe (`components/portfolio/themed-globe.tsx`)
 
-The most involved file in the repo, and self-documenting — its header comment
+The most involved file in the repo, and self-documenting. Its header comment
 explains every deviation from the demo it was ported from. In short:
 
 - 3,000 capsules are instanced onto a Fibonacci sphere, each rotated so its flat
@@ -90,7 +90,7 @@ explains every deviation from the demo it was ported from. In short:
 - Four orbs orbit on tilted planes. Every spike measures its inverse-square
   distance to each orb; the nearest one presses that spike toward the core, so
   the orbs carve travelling craters. All of it runs in the vertex shader.
-- Lighting is analytic — fresnel/spec glass plus an aqua rim light, no matcap
+- Lighting is analytic: fresnel/spec glass plus an aqua rim light, no matcap
   and no noise texture, which is two texture fetches the original demo paid for
   and this one does not.
 - Shadow mapping is replaced by a `smoothstep` on N·L. The demo's
@@ -106,7 +106,7 @@ keyframe.
 
 ### Particles (`components/portfolio/particles.tsx`)
 
-Not Three.js — a 2D canvas layer behind the contact section. Circles drift, fade
+Not Three.js, but a 2D canvas layer behind the contact section. Circles drift, fade
 between an alpha and a target alpha, and lean toward the pointer by their own
 `magnetism` factor. The maths lives in `helpers/particles-helpers.ts` so the
 component stays a renderer.
@@ -115,7 +115,7 @@ component stays a renderer.
 
 Every string, project, testimonial and skill on the page comes from
 `constants/portfolio-constants.ts`, typed against `types/portfolio-types.ts`.
-No component holds copy. This is what makes forking cheap — see
+No component holds copy. This is what makes forking cheap. See
 [`customization.md`](customization.md).
 
 `STATS` is hand-written copy, not derived from `MY_PROJECTS.length`. If you add
@@ -155,8 +155,8 @@ visitors' contact details:
 | Are you a real user on this project? | Supabase Auth |
 | Are you allowed to read the enquiries? | A row in `public.admin_users` |
 
-`lib/admin/auth.ts` resolves both into one `AdminState` — `admin`,
-`signed-out`, `not-admin`, or `not-configured` — memoized with React's `cache`
+`lib/admin/auth.ts` resolves both into one `AdminState` (`admin`,
+`signed-out`, `not-admin`, or `not-configured`), memoized with React's `cache`
 so a layout, a page and an action can each ask without repeating the round trip.
 
 It calls `getUser()`, never `getSession()`. `getSession()` decodes whatever is
@@ -165,7 +165,7 @@ server. That is the difference between a check and a formality.
 
 ### Enforced three times
 
-1. **`proxy.ts`** — bounces requests with no session before a page renders.
+1. **`proxy.ts`:** bounces requests with no session before a page renders.
 2. **`getAdminState()`** in the page and in every Server Action. Next.js exposes
    Server Actions as endpoints reachable by direct POST, so this is not a
    repetition of the proxy's work.
@@ -177,7 +177,7 @@ server. That is the difference between a check and a formality.
 
 Supabase access tokens are short-lived, and Server Components cannot write
 cookies. If the refreshed token pair is not written back in `proxy.ts` it is
-written back nowhere — and the symptom is an admin who gets logged out at
+written back nowhere, and the symptom is an admin who gets logged out at
 seemingly random intervals, with nothing in the logs. The `getUser()` call there
 is what triggers the refresh; it is not a redundant check.
 
@@ -201,19 +201,19 @@ Eight environment variables became two, and both are public.
 
 One idempotent file, `supabase/migrations/0001_init.sql`.
 
-**`contact_submissions`** — every enquiry. RLS with a deliberate asymmetry:
+**`contact_submissions`:** every enquiry. RLS with a deliberate asymmetry:
 
 | Role | May |
 | --- | --- |
-| `anon`, `authenticated` | INSERT only — a visitor cannot read back even their own row |
+| `anon`, `authenticated` | INSERT only. A visitor cannot read back even their own row |
 | admins (`is_admin()`) | SELECT, DELETE |
-| anyone | *never* UPDATE — an enquiry is a record of what someone actually wrote |
+| anyone | *never* UPDATE. An enquiry is a record of what someone actually wrote |
 
 CHECK constraints bound every field's length. The insert policy is open to
 anonymous callers, so the REST endpoint is reachable directly with the public
 anon key; those bounds are what stop a direct caller writing megabytes.
 
-**`admin_users`** — the allowlist. Readable by admins, and writable by nobody:
+**`admin_users`:** the allowlist. Readable by admins, and writable by nobody:
 there is no insert, update or delete policy at all. Promotion happens in the SQL
 editor through `grant_admin()`, whose EXECUTE is revoked from `anon` and
 `authenticated` so it cannot be reached over RPC. Without that revoke, any
@@ -221,14 +221,14 @@ signed-up user could promote themselves.
 
 **`is_admin()`** is `security definer` for a specific reason. The policies call
 it, and it reads `admin_users`, which has RLS. Evaluated as the caller, that
-recurses — the policy asks the function, the function triggers the policy, and
+recurses: the policy asks the function, the function triggers the policy, and
 Postgres raises "infinite recursion detected in policy". Running as the definer
 reads the table without RLS and breaks the cycle. Its `search_path` is pinned so
 a caller who can create objects cannot shadow `admin_users` with their own.
 
 ## Degrading without a database
 
-`lib/supabase/config.ts` answers one question — `isSupabaseConfigured` — and
+`lib/supabase/config.ts` answers one question, `isSupabaseConfigured`, and
 never throws. It also rejects the placeholder values from `.env.example`, so a
 half-finished setup shows the setup panel rather than a DNS failure.
 

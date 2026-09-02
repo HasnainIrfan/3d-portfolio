@@ -64,7 +64,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const recipient = env("CONTACT_RECIPIENT_EMAIL") ?? user;
 
   if (!host || !user || !pass || !recipient) {
-    console.error("SMTP secrets are incomplete — no email sent.");
+    console.error("SMTP secrets are incomplete. No email sent.");
     await recordResult(submission.id, false, "SMTP is not configured");
     return json({ ok: false, reason: "smtp-not-configured" });
   }

@@ -57,7 +57,7 @@ const profilePage = {
 const professionalService = {
   "@type": "ProfessionalService",
   "@id": `${SITE_URL}/#service`,
-  name: `${HERO_NAME} — Web & Mobile Development`,
+  name: `${HERO_NAME} Web & Mobile Development`,
   url: SITE_URL,
   provider: { "@id": `${SITE_URL}/#person` },
   areaServed: "Worldwide",

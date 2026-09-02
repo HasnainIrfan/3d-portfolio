@@ -15,7 +15,7 @@ export const ServicesCtaCard: FC = () => (
         Let&apos;s scope it together.
       </h3>
       <p className="mt-2 max-w-xl text-neutral-400">
-        Send me a brief — I&apos;ll reply within 24 hours with a realistic plan,
+        Send me a brief and I&apos;ll reply within 24 hours with a realistic plan,
         timeline and price.
       </p>
     </div>

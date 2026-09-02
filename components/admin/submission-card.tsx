@@ -49,9 +49,9 @@ export const SubmissionCard: FC<SubmissionCardProps> = ({ row }) => (
       </summary>
       <dl className="mt-3 grid gap-2 text-xs text-neutral-400 sm:grid-cols-[7rem_1fr]">
         <dt className="text-neutral-500">IP address</dt>
-        <dd className="break-all">{row.ip_address ?? "—"}</dd>
+        <dd className="break-all">{row.ip_address ?? "N/A"}</dd>
         <dt className="text-neutral-500">User agent</dt>
-        <dd className="break-all">{row.user_agent ?? "—"}</dd>
+        <dd className="break-all">{row.user_agent ?? "N/A"}</dd>
         <dt className="text-neutral-500">Submission ID</dt>
         <dd className="break-all font-mono">{row.id}</dd>
       </dl>

@@ -5,7 +5,7 @@ is the contact form: a Supabase table, an SMTP account, and the environment
 variables that connect them.
 
 If you only want the front end, skip to
-[Front end only](#front-end-only-no-database-no-email) — it needs no
+[Front end only](#front-end-only-no-database-no-email). It needs no
 environment variables at all.
 
 ---
@@ -23,7 +23,7 @@ environment variables at all.
    This repository is public, so those values are known to anyone who reads it.
    Use your own address and a long, unique password.
 
-3. Paste the whole file into **SQL Editor** and run it. One file, idempotent —
+3. Paste the whole file into **SQL Editor** and run it. One file, idempotent:
    it creates the table, the admin allowlist, every RLS policy, the
    `grant_admin` helpers, and your admin account.
 
@@ -32,7 +32,7 @@ environment variables at all.
 5. Project Settings → **API** → copy the **Project URL** and the **anon** key.
 
 > There is no service-role key in this project, and you should not add one. The
-> anon key is public by design — row-level security decides what it can read.
+> anon key is public by design, and row-level security decides what it can read.
 
 ## 2. The lead notification email
 
@@ -66,13 +66,13 @@ Then Dashboard → **Database → Webhooks → Create a new hook**:
 That header is the only thing standing between the function and anyone who
 learns its URL. Skip it and your SMTP account becomes an open relay.
 
-Any provider works — Gmail with an **App Password**, Zoho, Resend, Mailgun,
+Any provider works: Gmail with an **App Password**, Zoho, Resend, Mailgun,
 Amazon SES. Port 465 is implicit TLS; 587 negotiates STARTTLS.
 
 ## 3. Auth emails
 
 Password resets and invites are sent by Supabase, not by the app. Add your own
-SMTP under Authentication → **SMTP Settings** — the built-in sender is
+SMTP under Authentication → **SMTP Settings**, because the built-in sender is
 rate-limited and not meant for production. They use Supabase's default styling;
 this project ships no templates for them.
 
@@ -94,7 +94,7 @@ setup panel at `/admin` until they are set.
 Vercel → **Settings → Domains** → add yours and follow the DNS instructions,
 then set `NEXT_PUBLIC_SITE_URL` to it and redeploy. That one variable drives
 `metadataBase`, the canonical URL, `robots.txt`, `sitemap.xml` and every Open
-Graph image URL — there is nothing else to update.
+Graph image URL. There is nothing else to update.
 
 Afterwards, submit `https://yourdomain.com/sitemap.xml` in
 [Google Search Console](https://search.google.com/search-console) and check the
@@ -110,7 +110,7 @@ anywhere with zero environment variables.
 
 ## Other hosts
 
-Nothing here is Vercel-specific. Any Node **20.9+** host works — Netlify,
+Nothing here is Vercel-specific. Any Node **20.9+** host works: Netlify,
 Railway, Render, Fly.io, a VPS with `npm run build && npm run start`, or Docker
 on `node:20-alpine`. The 3D scenes are client-only (`ssr: false`), so no host
 needs a GPU. Email is sent by Supabase, not by the host, so there is no mail
@@ -146,7 +146,7 @@ missing or still hold `.env.example` placeholders. Environment changes need a
 redeploy to take effect.
 
 **Signed in, but "Not an admin".** The Supabase account is real; it has no
-`admin_users` row. Run `select public.grant_admin('you@example.com');` — the
+`admin_users` row. Run `select public.grant_admin('you@example.com');` and the
 page shows the exact statement.
 
 **Sign-in says "Invalid email or password" and you are sure it isn't.** Check the
@@ -160,7 +160,7 @@ hand-written `insert into auth.users` alone does not.
 **HTTP 429 on login.** Supabase's own sign-in rate limit. Wait a few minutes.
 
 **The form saves but no email arrives.** Check `/admin` first. A row that is
-present, with a "notification email was not delivered" warning, means SMTP —
+present, with a "notification email was not delivered" warning, means SMTP,
 not the form. `supabase functions logs notify-contact` has the reason. A row
 present with *no* warning means the webhook never fired: check Database →
 Webhooks.

@@ -48,13 +48,13 @@ const detailRow = (label: string, value: string): string => `
   </tr>`;
 
 export const buildReplySubject = (ownerName: string): string =>
-  `Thanks for reaching out — ${ownerName}`;
+  `Thanks for reaching out to ${ownerName}`;
 
 export const buildReplyText = (s: Submission, ownerName: string): string =>
   [
     `Hi ${firstName(s.name)},`,
     "",
-    `Thanks for getting in touch — your message reached me and I'll reply personally, usually within one business day.`,
+    `Thanks for getting in touch. Your message reached me and I'll reply personally, usually within one business day.`,
     "",
     "Here is what you sent, for your records:",
     "",
@@ -62,7 +62,8 @@ export const buildReplyText = (s: Submission, ownerName: string): string =>
     "",
     "No need to reply to this message; it is just a confirmation.",
     "",
-    `— ${ownerName}`,
+    "Best,",
+    ownerName,
   ].join("\n");
 
 export const buildReplyHtml = (
@@ -71,11 +72,11 @@ export const buildReplyHtml = (
   siteUrl?: string
 ): string =>
   shell(
-    "Your message reached me — I'll reply within one business day.",
+    "Your message reached me. I'll reply within one business day.",
     `
         <tr><td align="center" style="padding:34px 30px 0;">
           <div style="width:46px;height:46px;line-height:46px;border-radius:12px;background:#5c33cc;color:#ffffff;font-size:20px;font-weight:bold;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(ownerName.charAt(0).toUpperCase())}</div>
-          <h1 style="margin:20px 0 0;color:#ffffff;font-size:22px;font-weight:bold;font-family:Arial,Helvetica,sans-serif;">Thanks, ${escapeHtml(firstName(s.name))} &mdash; got it</h1>
+          <h1 style="margin:20px 0 0;color:#ffffff;font-size:22px;font-weight:bold;font-family:Arial,Helvetica,sans-serif;">Got it, ${escapeHtml(firstName(s.name))}</h1>
         </td></tr>
 
         <tr><td style="padding:14px 30px 0;">
@@ -102,7 +103,7 @@ ${
         <tr><td style="padding:24px 30px 30px;">
           <div style="border-top:1px solid #282b4b;padding-top:18px;">
             <p style="margin:0;color:#4a4d63;font-size:11px;line-height:1.6;text-align:center;font-family:Arial,Helvetica,sans-serif;">
-              This is an automatic confirmation &mdash; no need to reply to it.
+              This is an automatic confirmation, no need to reply to it.
               My personal answer is on its way.
             </p>
           </div>
@@ -119,13 +120,13 @@ export const buildAlertText = (s: Submission): string =>
     "",
     `Name:    ${s.name}`,
     `Email:   ${s.email}`,
-    `Budget:  ${s.budget ?? "—"}`,
+    `Budget:  ${s.budget ?? "Not specified"}`,
     `Sent:    ${new Date(s.created_at).toUTCString()}`,
     "",
     "Message:",
     s.message,
     "",
-    "—",
+    "---",
     `Reply to this email to answer ${s.name} directly.`,
   ].join("\n");
 
