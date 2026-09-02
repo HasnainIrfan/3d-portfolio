@@ -1,31 +1,19 @@
 "use client";
 
-import { Suspense, type FC } from "react";
+import { type FC } from "react";
+import dynamic from "next/dynamic";
 import { motion } from "motion/react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Float } from "@react-three/drei";
-import { useMediaQuery } from "react-responsive";
-import { easing } from "maath";
-import { type RootState } from "@react-three/fiber";
 import { HeroText } from "@/components/portfolio/hero-text";
 import { ParallaxBackground } from "@/components/portfolio/parallax-background";
-import { Astronaut } from "@/components/portfolio/astronaut";
-import { Loader } from "@/components/portfolio/loader";
+import { useDeferred3D } from "@/hooks/use-deferred-3d";
 
-const Rig: FC = () => {
-  useFrame((state: RootState, delta: number) => {
-    easing.damp3(
-      state.camera.position,
-      [state.mouse.x / 10, 1 + state.mouse.y / 10, 3],
-      0.5,
-      delta
-    );
-  });
-  return null;
-};
+const HeroScene = dynamic(
+  () => import("@/components/sections/hero-scene").then((mod) => mod.HeroScene),
+  { ssr: false }
+);
 
 export const Hero: FC = () => {
-  const isMobile = useMediaQuery({ maxWidth: 853 });
+  const showScene = useDeferred3D();
 
   return (
     <section
@@ -34,22 +22,7 @@ export const Hero: FC = () => {
     >
       <HeroText />
       <ParallaxBackground />
-      <figure
-        className="absolute inset-0"
-        style={{ width: "100vw", height: "100vh" }}
-      >
-        <Canvas camera={{ position: [0, 1, 3] }}>
-          <Suspense fallback={<Loader />}>
-            <Float>
-              <Astronaut
-                scale={isMobile ? 0.23 : undefined}
-                position={isMobile ? [0, -1.5, 0] : undefined}
-              />
-            </Float>
-            <Rig />
-          </Suspense>
-        </Canvas>
-      </figure>
+      {showScene && <HeroScene />}
 
       <motion.a
         href="#about"

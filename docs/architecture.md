@@ -62,6 +62,38 @@ that wrapper they interleave with the globe in paint order and it punches
 through the middle of the page. Lifting the content into its own stacking
 context is what pins the globe behind it.
 
+## Performance budget
+
+Nothing that costs a phone real work is allowed to mount on a phone.
+
+`hooks/use-deferred-3d.ts` is the single gate. It returns `false` until the
+`load` event has fired and the browser is idle, and then only returns `true` for
+a viewport of 853px or wider, on a device reporting at least 4 cores and 4 GB of
+memory, with `prefers-reduced-motion` unset. Three things read it:
+
+- `components/globe/globe-layer.tsx` decides between the live globe and
+  `globe-poster.tsx`, a CSS painted still built from the same `THEME` colours
+- `components/sections/hero.tsx` mounts the astronaut canvas, or nothing
+- `components/portfolio/parallax-background.tsx` adds the three mountain layers
+  on top of the sky
+
+Because the gate returns `false` on the server and on first client render, the
+`dynamic()` imports behind it never resolve on a phone, so three.js, drei and
+postprocessing (876 KB) are never downloaded there. The particle field in the
+contact section is gated separately by `use-in-view-once`.
+
+The intro overlay in `page-loader.tsx` is CSS driven, not state driven. It
+reveals and dismisses itself through the `.page-loader`, `.reveal` and `.intro-*`
+animations in `globals.css`, so it plays and leaves on time even if hydration is
+slow, and React only unmounts it afterwards. An inline script in the root layout
+sets `data-intro-played` from `sessionStorage` before first paint, which hides it
+outright on repeat visits within a session.
+
+Above-the-fold copy in `hero-text.tsx` uses the same `.reveal` CSS animation
+rather than `motion` variants. Anything with a `motion` `initial` prop ships as
+`opacity: 0` in the server HTML and stays invisible until hydration, which puts
+JavaScript on the critical path for the largest text on the page.
+
 ## The 3D layer
 
 ### The astronaut (`components/portfolio/astronaut.tsx`)

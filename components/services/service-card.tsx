@@ -80,6 +80,8 @@ export const ServiceCard: FC<ServiceCardProps> = ({
                 <img
                   src={service.icon}
                   alt=""
+                  loading="lazy"
+                  decoding="async"
                   className="h-8 w-8 opacity-90 md:h-9 md:w-9"
                 />
               </div>

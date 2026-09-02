@@ -114,14 +114,24 @@ Two places outside the theme block also hold colour and should match:
 
 ## 4. SEO and identity
 
-**`constants/seo-constants.ts`** is the single source: `SITE_TITLE`,
-`SITE_DESCRIPTION`, `SITE_TAGLINE`, `SITE_KEYWORDS` and `OG_IMAGE`. Write the
-description for a human. It is what shows under your link in search results and
-on social cards.
+**`constants/seo-constants.ts`** is the single source. Site-wide defaults:
+`SITE_TITLE`, `SITE_DESCRIPTION`, `SITE_TAGLINE`, `SITE_KEYWORDS`, `OG_IMAGE`.
+Per-route copy: `HOME_TITLE` and `HOME_DESCRIPTION` for the portfolio,
+`ADMIN_TITLE` / `ADMIN_LOGIN_TITLE` and their descriptions for the private
+dashboard. `SITE_SECTIONS` lists the on-page anchors and feeds the JSON-LD.
 
-Everything downstream reads from it: `app/layout.tsx` (metadata, Open Graph,
-Twitter card), `app/sitemap.ts`, `app/robots.ts`, `app/manifest.ts` and the
-JSON-LD in `components/seo/json-ld.tsx`.
+Write the description for a human and keep it under about 160 characters. It is
+what shows under your link in search results and on social cards. Titles read
+best under about 60 characters.
+
+Everything downstream reads from it:
+
+- `app/layout.tsx`: site-wide defaults, title template, Open Graph, Twitter card
+- `app/page.tsx`: the home title, meta description, canonical and profile card
+- `app/admin/layout.tsx` and the admin pages: titles plus `noindex, nofollow`
+- `app/sitemap.ts`, `app/robots.ts`, `app/manifest.ts`
+- `components/seo/json-ld.tsx`: Person, WebSite, ProfilePage, section ItemList
+  and ProfessionalService structured data
 
 **`public/og.jpg`:** your social preview, 1200×630. This is what appears when
 someone shares your link.
@@ -133,6 +143,10 @@ from code (no image files). Edit the JSX inside.
 drives the canonical URL, the sitemap, robots.txt and every Open Graph image
 URL.
 
+**Set `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`** to the token Google Search
+Console gives you and the `google-site-verification` meta tag is rendered on
+every page. Leave it unset and no tag is emitted.
+
 ---
 
 ## 5. Swapping the 3D model
@@ -140,19 +154,42 @@ URL.
 The astronaut is the site's signature, so this is the change that most makes it
 yours.
 
-1. Put your `.glb` in `public/models/`. Under 3 MB, ideally
-   [Draco-compressed](https://github.com/google/draco).
+1. Put your `.glb` in `public/models/`. Keep it under 1 MB. Run it through
+
+   ```bash
+   npx @gltf-transform/cli optimize in.glb out.glb \
+     --texture-compress webp --texture-size 1024 \
+     --compress meshopt --flatten false --join false --simplify false
+   ```
+
+   which took the bundled astronaut from 2.99 MB to 363 KB. The three `false`
+   flags matter. `astronaut.tsx` rebuilds the node hierarchy by hand and looks
+   meshes up by name, so it never sees the transforms on the glTF nodes:
+   `--flatten` pushes the root scale down onto the mesh and bone nodes and the
+   model renders about five times too small, and `--join` merges the meshes and
+   renames them. Meshopt needs no extra decoder, drei bundles it.
 2. Update the path in `components/portfolio/astronaut.tsx` (`useGLTF("/models/…")`).
 3. The first embedded animation clip auto-plays. A model with no clips renders
    fine, it just sits still.
-4. Adjust framing in `components/sections/hero.tsx`: the `scale` and `position`
-   props, which have separate mobile values (below 853px).
+4. Adjust framing in `components/sections/hero-scene.tsx`: the `scale` and
+   `position` props, which have separate mobile values (below 853px).
 5. Nudge the camera in the `<Canvas camera={{ position: [0, 1, 3] }}>` prop if
    your model is a different size.
 
 Free, license-checked models: [Sketchfab](https://sketchfab.com/features/free-3d-models),
 [Poly Pizza](https://poly.pizza), [Quaternius](https://quaternius.com).
 **Check the licence and keep the attribution.**
+
+Neither canvas mounts on phones. See "Performance budget" in
+[`architecture.md`](architecture.md) for the rules and how to change them.
+
+### Hero artwork
+
+The parallax layers in `public/assets/` are WebP and are rendered through
+`next/image`, so Next serves AVIF or WebP at the device width. If you replace
+them, convert first (`cwebp -q 76 in.png -o out.webp`) and keep the same
+1820x1020 aspect. Phones load only `sky.webp` plus a gradient; the three
+mountain layers and `planets.webp` are desktop only.
 
 ---
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FC } from "react";
-import { motion } from "motion/react";
 import { HireMeButton } from "@/components/navbar/hire-me-button";
 import { MobileMenu } from "@/components/navbar/mobile-menu";
 import { NavBrand } from "@/components/navbar/nav-brand";
@@ -19,11 +18,8 @@ export const Navbar: FC = () => {
   const active = useActiveSection();
 
   return (
-    <motion.header
-      initial={{ y: -40, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.7, ease: "easeOut" }}
-      className={`fixed inset-x-0 top-0 z-30 w-full transition-all duration-500 ${
+    <header
+      className={`reveal-down fixed inset-x-0 top-0 z-30 w-full transition-all duration-500 ${
         scrolled
           ? "border-b border-white/10 bg-primary/70 backdrop-blur-xl"
           : "bg-transparent"
@@ -70,6 +66,6 @@ export const Navbar: FC = () => {
         active={active}
         onClose={() => setIsOpen(false)}
       />
-    </motion.header>
+    </header>
   );
 };

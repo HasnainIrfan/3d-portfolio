@@ -16,7 +16,7 @@ import {
 export const Astronaut: FC<AstronautProps> = (props) => {
   const group = useRef<Group>(null);
   const { nodes, materials, animations } = useGLTF(
-    "/models/tenhun_falling_spaceman_fanart.glb"
+    "/models/astronaut.glb"
   );
   const { actions } = useAnimations(animations, group);
 
@@ -91,4 +91,4 @@ export const Astronaut: FC<AstronautProps> = (props) => {
   );
 };
 
-useGLTF.preload("/models/tenhun_falling_spaceman_fanart.glb");
+useGLTF.preload("/models/astronaut.glb");

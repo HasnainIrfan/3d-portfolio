@@ -64,7 +64,7 @@ export const Footer: FC = () => {
                 transition={{ duration: 0.5, delay: 0.3 + i * 0.08 }}
                 className="h-10 w-10 rounded-full border border-white/10 bg-white/[0.04] flex items-center justify-center hover:bg-white/[0.1] hover:border-white/30 transition-colors"
               >
-                <img src={social.icon} alt="" className="w-4 h-4" />
+                <img src={social.icon} alt="" loading="lazy" decoding="async" className="w-4 h-4" />
               </motion.a>
             ))}
           </div>
