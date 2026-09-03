@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type FC } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import { twMerge } from "tailwind-merge";
 import { type FlipWordsProps } from "@/types/portfolio-types";
 
@@ -22,38 +21,29 @@ export const FlipWords: FC<FlipWordsProps> = ({
     return () => window.clearInterval(timer);
   }, [duration, words.length]);
 
-  const classes = twMerge("z-10 inline-block relative text-left", className);
-
-  if (!started) return <span className={classes}>{words[0]}</span>;
-
   return (
-    <AnimatePresence>
-      <motion.div
-        key={words[index]}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: "spring", stiffness: 100, damping: 10 }}
-        exit={{
-          opacity: 0,
-          y: -40,
-          x: 40,
-          scale: 2,
-          position: "absolute",
-        }}
-        className={classes}
+    <span className={twMerge("relative z-10 inline-grid text-left", className)}>
+      {/* Every word sits in the one grid cell, so the row is always as wide as
+          the widest of them. Without this the hero reflows on each swap, and
+          a word that paints a larger block than its predecessor becomes a new
+          Largest Contentful Paint candidate - which is how a rotating word ends
+          up pushing LCP out by one interval, forever. */}
+      {words.map((word) => (
+        <span
+          key={word}
+          aria-hidden
+          className="invisible col-start-1 row-start-1"
+        >
+          {word}
+        </span>
+      ))}
+
+      <span
+        key={index}
+        className={twMerge("col-start-1 row-start-1", started && "flip-word")}
       >
-        {words[index].split("").map((letter, letterIndex) => (
-          <motion.span
-            key={`${words[index]}-${letterIndex}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: letterIndex * 0.05, duration: 0.2 }}
-            className="inline-block"
-          >
-            {letter}
-          </motion.span>
-        ))}
-      </motion.div>
-    </AnimatePresence>
+        {words[index]}
+      </span>
+    </span>
   );
 };

@@ -64,23 +64,72 @@ context is what pins the globe behind it.
 
 ## Performance budget
 
-Nothing that costs a phone real work is allowed to mount on a phone.
+Nothing that costs a device real work is allowed to mount on a device that
+cannot afford it.
 
-`hooks/use-deferred-3d.ts` is the single gate. It returns `false` until the
-`load` event has fired and the browser is idle, and then only returns `true` for
+`hooks/use-deferred-3d.ts` is the single gate. Nothing it exports returns `true`
+until the `load` event has fired and the browser has gone idle, and then only on
 a viewport of 853px or wider, on a device reporting at least 4 cores and 4 GB of
-memory, with `prefers-reduced-motion` unset. Three things read it:
+memory, with `prefers-reduced-motion` unset. It exposes two gates:
 
-- `components/globe/globe-layer.tsx` decides between the live globe and
-  `globe-poster.tsx`, a CSS painted still built from the same `THEME` colours
-- `components/sections/hero.tsx` mounts the astronaut canvas, or nothing
-- `components/portfolio/parallax-background.tsx` adds the three mountain layers
-  on top of the sky
+- `useDeferredLayers()` covers the decorative parallax images in
+  `components/portfolio/parallax-background.tsx`. They are ordinary images moved
+  by composited transforms, so a wide viewport and some headroom is all they ask
+- `useDeferred3D(stage)` additionally requires a **hardware** WebGL renderer, and
+  orders the scenes. `components/sections/hero.tsx` takes stage 0 for the
+  astronaut canvas; `components/globe/globe-layer.tsx` takes stage 1 and falls
+  back to `globe-poster.tsx`, a CSS painted still built from the same `THEME`
+  colours. Each stage waits for another idle callback, so two WebGL contexts,
+  two renderers and two rounds of shader links never land in one long task
 
 Because the gate returns `false` on the server and on first client render, the
 `dynamic()` imports behind it never resolve on a phone, so three.js, drei and
 postprocessing (876 KB) are never downloaded there. The particle field in the
 contact section is gated separately by `use-in-view-once`.
+
+### Software renderers
+
+`hasHardwareWebGL()` reads `UNMASKED_RENDERER_WEBGL` and refuses SwiftShader,
+llvmpipe and the other CPU rasterisers. A full-screen scene driven through one
+of those spends seconds of main-thread time per frame: measured against a
+SwiftShader build of the same page, the canvases alone accounted for 4.0-7.2s of
+blocking time, which is what a lab run without a GPU reports as Total Blocking
+Time. Those visitors get the painted fallback and the parallax landscape
+instead, which is the same trade the site already makes on phones.
+
+`failIfMajorPerformanceCaveat` is deliberately not used for this. It still hands
+back a context under SwiftShader while rejecting some genuinely accelerated
+setups, so the renderer name is the signal; a browser that hides that name for
+fingerprinting reasons is trusted rather than downgraded.
+
+### Frames nobody can see
+
+There is no `repeat: Infinity` anywhere. An endless `motion` animation - the
+hero's scroll indicator used to be one - keeps a `requestAnimationFrame`
+callback registered for the life of the page, so the main thread never reaches
+the idle state that Time to Interactive and Total Blocking Time are measured
+against. That loop is now the `.scroll-hint-sweep` keyframe in `globals.css`,
+which the compositor runs without waking JavaScript at all.
+
+Note that Tailwind v4 compiles `-translate-x-1/2` to the standalone `translate`
+property, not to `transform`, so a keyframe ending on `transform: none` composes
+with it rather than replacing it. A keyframe that sets its own `translate(-50%)`
+on top of the utility shifts the element twice.
+
+
+`hooks/use-scene-active.ts` feeds `<Canvas frameloop>`. A scene pauses when the
+tab goes to the background, and the hero canvas also pauses once it scrolls off
+screen, so neither keeps a render loop and a postprocessing pass alive for a
+viewport nobody is looking at.
+
+The globe's bloom chain is built one idle callback after the canvas itself
+(`hooks/use-globe-postprocessing.ts`), because constructing a pass links its
+shader programs. Edge smoothing comes from the render target's MSAA rather than
+an `SMAAEffect`, which used to decode two lookup textures and link three more
+programs on the main thread while the page was trying to become interactive.
+While the composer is still pending the hook renders the plain scene itself,
+since taking priority 1 in the frame loop hands rendering over from
+react-three-fiber.
 
 The intro overlay in `page-loader.tsx` is CSS driven, not state driven. It
 reveals and dismisses itself through the `.page-loader`, `.reveal` and `.intro-*`
@@ -94,15 +143,26 @@ rather than `motion` variants. Anything with a `motion` `initial` prop ships as
 `opacity: 0` in the server HTML and stays invisible until hydration, which puts
 JavaScript on the critical path for the largest text on the page.
 
+`flip-words.tsx` is the largest text on the page, which makes it the Largest
+Contentful Paint element, and a rotating word is an unusual thing to hang that
+metric on: every swap paints a fresh block, and any block larger than the last
+one moves LCP later. It used to animate each letter in its own remounting
+`motion.span`, which pushed LCP out by one interval on every rotation - measured
+at 3.5s, then 6.5s, then 16.3s in a long enough session. The component now
+stacks an invisible copy of every word in the one grid cell, so the row is
+always as wide as the widest of them and no swap can reflow the hero. LCP
+settles on the hero reveal, around 1.0s.
+
 ## The 3D layer
 
 ### The astronaut (`components/portfolio/astronaut.tsx`)
 
 A GLB loaded with `useGLTF`, whose first embedded animation clip is played on
-mount via `useAnimations`. Entry is a `motion` spring on `position.y` (from `5`
+mount via `useAnimations`. Entry is a `motion` spring on `position.y` (from `2`
 down to `-1`) applied inside `useFrame`, physics-driven rather than a fixed
 `transition`, so it settles naturally regardless of how long the model took to
-download.
+download. The drop is kept short because it is the largest moving object above
+the fold, and Speed Index measures how long the viewport takes to stop changing.
 
 The camera follows the pointer through a `Rig` component that calls
 `easing.damp3` from `maath` each frame: damping, not lerp, so the motion is

@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, type FC } from "react";
+import { Suspense, useRef, type FC } from "react";
 import { Canvas, useFrame, type RootState } from "@react-three/fiber";
 import { Float } from "@react-three/drei";
 import { useMediaQuery } from "react-responsive";
 import { easing } from "maath";
 import { Astronaut } from "@/components/portfolio/astronaut";
 import { Loader } from "@/components/portfolio/loader";
+import { useSceneActive } from "@/hooks/use-scene-active";
 
 const Rig: FC = () => {
   useFrame((state: RootState, delta: number) => {
@@ -22,13 +23,19 @@ const Rig: FC = () => {
 
 export const HeroScene: FC = () => {
   const isMobile = useMediaQuery({ maxWidth: 853 });
+  const frame = useRef<HTMLElement>(null);
+  const active = useSceneActive({ whenVisible: frame });
 
   return (
     <figure
+      ref={frame}
       className="absolute inset-0"
       style={{ width: "100vw", height: "100vh" }}
     >
-      <Canvas camera={{ position: [0, 1, 3] }}>
+      <Canvas
+        camera={{ position: [0, 1, 3] }}
+        frameloop={active ? "always" : "never"}
+      >
         <Suspense fallback={<Loader />}>
           <Float>
             <Astronaut

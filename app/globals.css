@@ -385,6 +385,37 @@ body {
   animation: intro-out 0.45s cubic-bezier(0.65, 0, 0.35, 1) 0.6s both;
 }
 
+@keyframes flip-word {
+  from {
+    opacity: 0;
+    transform: translateY(0.35em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.flip-word {
+  animation: flip-word 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes scroll-hint-sweep {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* A CSS keyframe runs on the compositor. The same loop expressed as an
+   infinite `motion` animation keeps a requestAnimationFrame callback alive for
+   the life of the page, which never lets the main thread go idle. */
+.scroll-hint-sweep {
+  animation: scroll-hint-sweep 1.8s ease-in-out infinite;
+}
+
 .intro-fill {
   transform-origin: left center;
   animation: intro-fill 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -415,6 +446,8 @@ body {
   .reveal,
   .reveal-down,
   .reveal-pop,
+  .flip-word,
+  .scroll-hint-sweep,
   .intro-fill,
   .intro-knob,
   .intro-count {

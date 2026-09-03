@@ -26,7 +26,9 @@ export const Astronaut: FC<AstronautProps> = (props) => {
     }
   }, [actions, animations]);
 
-  const yPosition = useMotionValue(5);
+  // A shorter drop settles the largest moving object above the fold sooner,
+  // which is what Speed Index measures.
+  const yPosition = useMotionValue(2);
   const ySpring = useSpring(yPosition, { damping: 30 });
 
   useEffect(() => {

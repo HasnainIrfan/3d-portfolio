@@ -73,6 +73,20 @@ export const GlobeScene: FC<GlobeSceneProps> = ({ count, paused, compact }) => {
   const spikeUniforms = useSpikeUniforms();
   const orbUniforms = useOrbUniforms();
 
+  // Reading window.scrollY inside the frame loop forces a style and layout
+  // recalculation on every frame, so the offset is cached from a passive
+  // scroll listener instead.
+  const scrollY = useRef(0);
+  useEffect(() => {
+    const sync = () => {
+      scrollY.current = window.scrollY;
+    };
+
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    return () => window.removeEventListener("scroll", sync);
+  }, []);
+
   useFrame((_, delta) => {
     const step = Math.min(delta, 1 / 30);
     if (!paused) elapsed.current += step;
@@ -177,7 +191,7 @@ export const GlobeScene: FC<GlobeSceneProps> = ({ count, paused, compact }) => {
         step * (GLOBE.idleSpin + hover.current * GLOBE.hoverSpin);
       damp(
         scrollSpin.current,
-        window.scrollY * GLOBE.scrollYaw,
+        scrollY.current * GLOBE.scrollYaw,
         GLOBE.yawStiffness,
         step
       );

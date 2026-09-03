@@ -3,12 +3,12 @@
 import Image from "next/image";
 import { type FC } from "react";
 import { motion, useScroll, useSpring, useTransform } from "motion/react";
-import { useDeferred3D } from "@/hooks/use-deferred-3d";
+import { useDeferredLayers } from "@/hooks/use-deferred-3d";
 
 const LAYER_SIZES = "100vw";
 
 export const ParallaxBackground: FC = () => {
-  const withLayers = useDeferred3D();
+  const withLayers = useDeferredLayers();
   const { scrollYProgress } = useScroll();
   const x = useSpring(scrollYProgress, { damping: 50 });
   const mountain3Y = useTransform(x, [0, 0.5], ["0%", "70%"]);

@@ -11,7 +11,8 @@ const ThemedGlobe = dynamic(
 );
 
 export const GlobeLayer: FC = () => {
-  const isInteractive = useDeferred3D();
+  // Stage 1: the hero canvas claims the first idle slot, the backdrop the next.
+  const isInteractive = useDeferred3D(1);
 
   return isInteractive ? <ThemedGlobe /> : <GlobePoster />;
 };
