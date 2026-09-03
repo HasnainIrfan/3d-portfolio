@@ -110,7 +110,8 @@ contact form and admin panel. Setup for the database, admin account and lead ema
 
 ## Credits & licensing
 
-Code is [MIT](LICENSE). The content and assets are **not**. Replace them before deploying:
+Code is [MIT](LICENSE). The content and assets are **not** - see [`NOTICE`](NOTICE).
+Replace them before deploying:
 
 - Personal content (name, biography, project write-ups, testimonials, résumé) belongs to Hasnain Irfan
 - `public/models/*.glb` is third-party fan art from Sketchfab, so **check its licence and keep the attribution**

@@ -1,0 +1,18 @@
+NOTICE — content and assets
+===========================
+
+The MIT license in LICENSE covers the SOURCE CODE of this project only.
+It does not grant any rights to the following, which are included so the
+demo site renders but are not the author's to relicense:
+
+  * Personal content: the name "Hasnain Irfan", biography, project
+    descriptions, testimonials, work history and the resume PDF.
+
+  * The 3D model in public/models/, which is third-party work sourced from
+    Sketchfab and carries its own license and attribution requirement.
+
+  * Project screenshots, client logos and brand marks in public/assets/,
+    which belong to their respective owners.
+
+If you use this project as a template, replace all of the above with your
+own before deploying. See the "Credits & licensing" section of README.md.

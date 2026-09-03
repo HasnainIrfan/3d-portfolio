@@ -19,18 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-NOTE ON CONTENT AND ASSETS
-
-This MIT license covers the SOURCE CODE only. It does not cover:
-
-  * Personal content: the name "Hasnain Irfan", biography, project
-    descriptions, testimonials, work history and the resume PDF.
-  * The 3D model in public/models/, which is third-party work sourced from
-    Sketchfab and carries its own license and attribution requirement.
-  * Project screenshots, client logos and brand marks in public/assets/,
-    which belong to their respective owners.
-
-If you fork this project, replace those with your own before deploying.
